@@ -1,0 +1,112 @@
+<html>
+<head><title>boo.com</title>
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta NAME="description" CONTENT="Shop at boo.com, online shopping destination for fashion, street and sportswear. Brands are Helly Hansen, DKNY, The North Face, Puma, Royal Elastics, Timberland, Vans, Jil Sander and more">
+<meta NAME="keywords" CONTENT="boo,boo.com,shopping,shopping,buy fashion,buy clothes,clothing,men's clothes,women's,men's clothing store,women's clothing,sports,sports apparel,sportswear,clothing shop,get sports wear online,travel clothing,travel clothes,athleticwear,athletic wear,fashion magazine,summer wear,athletic equipment,sporting goods,retail shopping,retail,shopping,sports store,exercise clothing,sports gear,running,running shoes,running shoe,fitness,footwear,fashion design, boo.com,ms. boo,European fashion,foot wear,track suit,tracksuit,sneakers,latest trends,running sneakers,models,kidswear,footwear,activewear,trend,style,swimwear,teen,shopping channel,accessories,beauty and fashion,clothes and beauty,the arts, beauty,beautiful,casual wear,shoes,exercise merchandise,basketball gear,basketball shorts,football jerseys,soccer shorts, soccer sneakers,trainer,trainers,cleats,t-shirts,beachwear,trunks,swim suits,swimsuits,tops,outerwear,women's outerwear,women's sports,women's apparel,cross training,vans,vans shoes,puma merchandise,glamour,living style,trends, urbanwear,streetwear,street gear,skateboarding,xgames,rock climbing,mountain biking,bungee jumping,skate boards,columbia,converse,east pack,fila,helly hansen,reef,alphanumeric,stussy,fresh jive,cosmic girl,dkny,final home,puma,spoon,vans,lacoste,nova,gotcha,north face,the north face,patagonia,raichle,rocket girl,royal elastics,tretorn,k-189,everlast,fubu,kappa,new balance,tsubo,solitude,dc shoes,counter culture,jan sport,champion,jil sander,fred perry,paul smith,speedo,timberland,acupuncture,maharishi,mandarina duck,moschino,quicksilver,walk,urban,climb,football,sail,tennis,run,running equipment,gloves,hats,headgear,scarves,bags,belts,tents,sleeping bags,polo shirts,shirts,tank tops vests,bra tops,sweatshirts,trousers,pants,jeans,blue jeans,bikinis,swimming trunks,shorts,sandals,boots,trainers,dresses,sarongs,articles,entertainment,information,celebrities,basketball sneakers,new balance footwear,skate,skate,wakeboarding,wakeboards,extreme sports,cycling,mountain climbing,surf,surfing,roller blading,techno,ravewear,hip,trendy,style,euro,international entertainment,street,urban style,european brands,entertainment technology,consumer friendly,customer service,crosstrainer">
+<meta NAME="author" CONTENT="boo.com group Ltd. Sports and streetwear on the net">
+<meta NAME="REVISIT-AFTER" CONTENT="30 days"> <meta NAME="COPYRIGHT" CONTENT="Copyright 2000 boo.com Group Ltd.">
+<meta NAME="ROBOTS" CONTENT="INDEX, NOFOLLOW">
+<noscript><meta http-equiv="refresh" content="0; url=/needjavascript.html"></noscript>
+<link rel="stylesheet" type="text/css" href="css/entry.css">
+<style type="text/css">
+#bodydiv { position: absolute; top:286; left:197; visibility:visible; z-index:1400}
+#booimage { position: absolute; top:171px; left:197px; visibility:visible; z-index:1401}
+.infoFontWhite {font-family:arial,helvetica,sans-serif; font-size:11px;}
+</STYLE>
+<script src="js/miscfunctions.js"></script>
+<script src="js/cookies.js"></script>
+<script language="javascript">
+var flashVersion = 0;
+var isIeWithFlash3 = false;
+var isIeWithFlash4 = false;
+var agt=navigator.userAgent.toLowerCase();
+var isMajorNSorIE = (parseInt(navigator.appVersion)>=4&&(agt.indexOf('mozilla')!=-1||agt.indexOf("msie")!=-1));
+var is_mac = (agt.indexOf('mac') != -1);
+</script>
+<script language="VBScript">
+<!--
+on error resume next
+function setVersion(ver, verNum)
+if isObject(ver) then
+setVersion = true
+flashVersion = verNum
+else
+setVersion = false
+end if
+end function
+isIeWithFlash3 = setVersion(CreateObject("ShockwaveFlash.ShockwaveFlash.3"), 3)
+isIeWithFlash4 = setVersion(CreateObject("ShockwaveFlash.ShockwaveFlash.4"), 4)
+-->
+</script>
+<script language="javascript">
+var browserSupportsCookies = false;
+if (document.cookie.length>0)
+browserSupportsCookies = true;
+else{
+document.cookie="x=0";
+browserSupportsCookies=(document.cookie=="x=0");
+}
+if(!isMajorNSorIE)
+location.href = "/needsomething.html?error=needversion4" + (is_mac ? "?os=mac" : "");
+if(!browserSupportsCookies)
+location.href = "/needsomething.html?error=nocookies" + (is_mac ? "?os=mac" : "");
+if (!navigator.javaEnabled())
+location.href = "/needsomething.html?error=nojava" + (is_mac ? "?os=mac" : "");
+var isNsWithFlash3 = (navigator.mimeTypes && navigator.mimeTypes["application/x-shockwave-flash"] && navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin && navigator.plugins && navigator.plugins["Shockwave Flash"])?true:false;
+if(isNsWithFlash3){
+var plugDesc = navigator.plugins["Shockwave Flash"].description;
+flashVersion = plugDesc.substr(plugDesc.indexOf(".")-1,3);
+}
+var flashDetected = (isNsWithFlash3||(isIeWithFlash3||isIeWithFlash4));
+function initBoo(){
+var theurl = 'choosecountry.html';
+if (getCookie("beenThereDoneThat")||getCookie("failedAuth")){
+if (getCookie("beenThereDoneThat")=="affirmative"||getCookie("failedAuth")=="true")
+theurl = 'login.html';
+}
+theurl+="?flashDetected=" + flashDetected + "&flashVersion=" + flashVersion;
+openWin(theurl, 640, 480, 'boomainwin');
+}
+function returnParams()
+{
+return window.location.search;
+}
+var boov_misHost='';
+if (window.location.hostname != "www.boo.com")
+{
+boov_misHost = 'http:\/\/tracker.uk.boo.com\/';
+}
+else
+{
+boov_misHost = 'http:\/\/tracker.boo.com\/';
+}
+var boov_misGif = 'Images\/pixel.gif';
+</script>
+</head>
+<body bgcolor="#CC0000" link="#336600" vlink="#336600" alink="#336600" onload="initBoo()">
+<div id="booimage">
+<a onclick="initBoo(); return false;" href="#"><img src="img/clickback.gif" width="180" height="97" border="0"></a>
+<div id="boodiv">
+<table border=0 cellpadding=0 cellspacing=0 width=230>
+<tr>
+<td>
+<font class="infoFontWhite" color="#ffffff">boo.com has been launched in another window. Nothing happens on this page, except that you may want to bookmark it.<br><br>This site is designed for 56k modems and above. It will work on slower modems, but your download times may be longer.<br></font>
+</td>
+</tr>
+</table>
+</div>
+<script language="JavaScript">
+var misImageString = '<img src="' + boov_misHost + boov_misGif;
+if (returnParams() != "")
+{
+misImageString += returnParams() + '&this_page=default.htm">';
+}
+else
+{
+misImageString += '?this_page=default.htm">';
+}
+document.write(misImageString);
+</script>
+</body>
+</html>

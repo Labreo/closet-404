@@ -1,0 +1,569 @@
+<!-- these two calls load the environment with variables -->
+<!-- using the name=value pairs in the URL -->
+<!-- for each name like 'BAR', a variable appears call 'form_BAR' -->
+<!-- FOO is just a temp var to pass the query string to the parse function -->
+
+
+
+<HTML>
+<HEAD>
+
+
+
+
+<script>
+
+<!-- hide me from non-js browsers
+cookie_name = "survey_cookie"
+now         = new Date()
+
+// check the existence of the cookie (short-circuit eval per spec)
+if ((document.cookie) && (-1 != document.cookie.indexOf(cookie_name)))
+{
+  // cookie already exists: do nothing
+} else {
+  // cookie doesn't exist: set it to avoid selecting this person in the future
+  document.cookie=cookie_name+"=Seen; expires=Thursday, 01-Jan-98 00:00:00 GMT"
+  // if cookie successfully set, and user in sample group, redirect
+  if ((-1 != document.cookie.indexOf(cookie_name)) && (now.getSeconds() < 1)) 
+{ 
+location = "http://help.hotbot.com/survey/index.html"
+  // survey URL
+
+  }
+}
+// -->
+
+</script>
+
+<!-- define some variables for use in the browser match -->
+
+
+
+
+
+
+
+
+<!-- LIBRARY DEFINED ITEMS -->
+
+
+
+
+
+
+
+
+<!-- DEFAULTS -->
+
+
+<!-- #set var="INFOBOX"               value="33" -->
+
+
+
+
+
+
+
+
+
+
+
+<!-- BROWSER TARGETING (overrides defaults) -->
+
+							<!-- other, e.g. Lynx, NS2, etc -->
+	<!-- accept defaults -->
+
+
+
+
+<TITLE>HotBot</TITLE>
+</HEAD>
+
+<BODY bgcolor="#00cc33" background="http://static.hotbot.com/images/bg_base_green.gif" text="#000000" link="#ff0000" vlink="#ff0000" alink="#0000ff">
+
+
+
+<FORM ACTION="/" NAME="form">
+
+
+
+
+
+<a href="http://www.hotbot.com/meta/logobar.map"><img src="http://static.hotbot.com/images/logobar2.gif" border=0 width=600 height=18 USEMAP="#logomap" alt="Wired Digital Navigation"></a>
+
+<MAP NAME="logomap">
+ <AREA SHAPE=RECT COORDS="0,0,125,18"   HREF="http://help.hotbot.com">
+ <AREA SHAPE=RECT COORDS="126,0,213,18" HREF="http://www.wired.com/">
+ <AREA SHAPE=RECT COORDS="214,0,288,18" HREF="http://www.hotwired.com/">
+ <AREA SHAPE=RECT COORDS="289,0,394,18" HREF="http://www.wired.com/wired/">
+ <AREA SHAPE=RECT COORDS="395,0,477,18" HREF="http://www.suck.com/">
+ <AREA SHAPE=RECT COORDS="582,0,600,18" HREF="http://www.wired.com/home/">
+</MAP>
+
+
+<!-- table number 1 -->
+
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=606 HEIGHT=45> <!-- this table has 3 columns and 1 row -->
+ <TR>
+  <TD WIDTH=195 HEIGHT=45 ALIGN=RIGHT VALIGN=MIDDLE>			<!-- 1, 1 -->
+   <IMG SRC="http://static.hotbot.com/images/logo_hb1_green.gif"
+    BORDER=0 ALT="- H o t B o t -" width=195 height=45 border=0>
+  </TD>
+  <TD WIDTH=286 HEIGHT=45 ALIGN=LEFT VALIGN=MIDDLE>				<!-- 1, 2 -->
+   <font face="geneva, arial" size=2><i><b>The WIRED Search Center</b></i></font>
+  </TD>
+  <TD WIDTH=125 HEIGHT=45 ALIGN=RIGHT VALIGN=MIDDLE>			<!-- 1, 3 -->
+
+<a href="http://nsads.hotwired.com/event.ng/Type=click&ProfileID=157&RunID=713&AdID=1262&Redirect=http:%2F%2Fwww.witcapital.com%2Fsand1.html" TARGET="_top"><img src="http://static.wired.com/advertising/blipverts/wit/10b.gif" border=1 height=35 width=125 alt="Click Here for Wit Capital"></a>  
+</TD>
+ </TR>
+</TABLE>
+
+<!-- table number 2 -->
+
+
+
+<TABLE cellpadding=0 cellspacing=0 border=0 width=601>
+
+<TR>
+<TD width=118 align=right valign=middle><img src="http://static.hotbot.com/images/spacer.gif" width=118 height=1></TD>
+<TD width=12><img src="http://static.hotbot.com/images/spacer.gif" width=12 height=1></TD>
+<TD colspan=14><img src="http://static.hotbot.com/images/spacer.gif" width=350 height=1></TD>
+
+
+<TD rowspan=1 valign=top align=middle width=120></TD>
+</TR>
+
+<TR>
+<TD width=118 align=right valign=middle><FONT FACE="geneva, arial" SIZE=1><b><i></i></b></font></TD>
+<TD width=12><img src="http://static.hotbot.com/images/spacer.gif" width=12 height=1></TD>
+<TD align=right valign=middle colspan=1>
+<FONT FACE="geneva, arial" SIZE=1>look for&nbsp;</font><SELECT NAME="SM" >
+ <OPTION VALUE="MC"     >all the words
+ <OPTION VALUE="SC"     >any of the words
+ <OPTION VALUE="phrase" >exact phrase
+ <OPTION VALUE="title"  >the page title
+ <OPTION VALUE="name"   >the person
+ <OPTION VALUE="url"    >links to this URL
+ <OPTION VALUE="B"      >Boolean phrase
+   </SELECT>
+</TD>
+<TD width=67 valign=middle></TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+<TD>&nbsp;</TD>
+
+<TD rowspan=1 valign=top align=middle width=125>&nbsp;</TD>
+
+</TR>
+
+<TR>
+<TD width=120 align=right valign=middle colspan=1><font face="geneva, arial" color=#ffffff size=2><b><i>Search : <nobr>The Web</nobr></i></b></font><BR>
+<img src="http://static.hotbot.com/images/spacer.gif" width=120 height=1></TD>
+	<TD width=6><img src="http://static.hotbot.com/images/spacer.gif" width=6 height=1></TD>
+
+	<TD align=right valign=top colspan=1><INPUT TYPE=text VALUE="" SIZE=35 name="MT" maxlength="300"><br><input TYPE=image  
+	src="http://static.hotbot.com/images/super.gif" name="super" border=0 
+	width=195 height=16 alt="Super Search"></TD>
+
+	<TD width=67 valign=top><input TYPE=image 
+	src="http://static.hotbot.com/images/btn_search.gif" name="search"
+border=0 width=67 height=21 alt="Search"></TD>
+
+	<TD align=right valign=top colspan=13>
+
+<a href="/vendors/gift2.html"><img src="http://static.hotbot.com/images/christmas2.gif"
+height=24 width=125 border=0 ALT="Shop Wired"></a></TD>
+</TR>
+</table>
+
+
+<MAP NAME="shopmap">
+<AREA SHAPE=RECT COORDS="0,0,125,33"
+HREF="http://www.hotwired.com/cgi-bin/redirect/418/http://www.gap.com/onlinestore/Storefront.asp">
+<AREA SHAPE=RECT COORDS="0,34,125,66" HREF="http://www.hotwired.com/cgi-bin/redirect/424/http://www.outpost.com">
+<AREA SHAPE=RECT COORDS="0,67,125,99" 
+HREF="http://www.hotwired.com/cgi-bin/redirect/343/http://expedia.msn.com/pub/eap.asp?eapid=2-1">
+<AREA SHAPE=RECT COORDS="0,100,125,135" HREF="http://www.hotwired.com/cgi-bin/redirect/420/http://www.onsale.com">
+<AREA SHAPE=RECT COORDS="0,136,125,170"
+HREF="http://www.hotwired.com/cgi-bin/redirect/423/http://barnesandnoble.bfast.com/booklink/click?sourceid=10163&ISBN=0767900111">
+<AREA SHAPE=RECT COORDS="0,171,125,206" HREF="http://www.hotwired.com/cgi-bin/redirect/425/http://www.1800flowers.com/cgi-bin/800f/product.pl/hotbotroses/1120">
+<AREA SHAPE=RECT COORDS="0,207,125,244" HREF="http://www.hotwired.com/cgi-bin/redirect/419/http://www.getsmart.com/hotbotmalla">
+<AREA SHAPE=RECT COORDS="0,245,125,278" HREF="http://www.hotwired.com/cgi-bin/redirect/426/http://www.musicblvd.com/cgi-bin/tw/1155_0_/mb2/live/mrkt/specials.txt">
+<AREA SHAPE=RECT COORDS="0,279,125,312" HREF="http://www.hotwired.com/cgi-bin/redirect/344/http://carpoint.msn.com/?src=hotbot">
+<AREA SHAPE=RECT COORDS="0,313,125,346"
+HREF="http://www.hotwired.com/cgi-bin/redirect/427/http://speedserve.com/cgi-bin/msrvr/%3Bexecmacro/preferred.d2w/display?group=Wired&subgroup=0&url=/speedsrv/alliance/Wired.html">
+<AREA SHAPE=RECT COORDS="0,334,125,378"
+HREF="http://www.hotwired.com/cgi-bin/redirect/429/http://www.virtualvin.com/vlinks/hotbot/index.html">
+<AREA SHAPE=RECT COORDS="0,378,125,402" HREF="http://www.hotwired.com/cgi-bin/redirect/428/http://www.wired.com/wired/subscribe/shopwired/">
+</MAP>
+
+<!-- table number 3 -->
+
+<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0> <!-- this table has 8 columns and 17 rows -->
+  <TR>
+  <TD WIDTH=114 HEIGHT=0></TD>
+  <TD WIDTH=16 HEIGHT=0></TD>
+  <TD WIDTH=37 HEIGHT=0></TD>
+  <TD WIDTH=73 HEIGHT=0></TD>
+  <TD WIDTH=110 HEIGHT=0></TD>
+  <TD WIDTH=110 HEIGHT=0></TD>
+  <TD WIDTH=20 HEIGHT=0></TD> 
+  <TD WIDTH=125 HEIGHT=0></TD>
+ </TR>
+ <TR>
+  <TD WIDTH=114 ALIGN=RIGHT VALIGN=TOP ROWSPAN=12>	<!-- 1-12, 1 -->
+   <!-- begin partner links here the link is relative because of the memoryleak -->
+
+   
+<!-- Begin partner link insertion below -->
+
+
+<a href="http://static.hotbot.com/meta/search_partners.map"><img src="http://static.hotbot.com/images/search_partners.gif" USEMAP="#search_partners_map" ISMAP border=0></a>
+
+<MAP NAME="search_partners_map">
+ <AREA SHAPE=RECT COORDS="0,0,113,20" HREF="/usenet.html">
+ <AREA SHAPE=RECT COORDS="0,21,113,40" HREF="/newsbot/index.html">
+ <AREA SHAPE=RECT COORDS="0,41,113,57" HREF="http://www.classifieds2000.com/cgi-cls/display.exe?hotbot+class">
+ <AREA SHAPE=RECT COORDS="0,58,113,76" HREF="/partners/websitez.html">
+ <AREA SHAPE=RECT COORDS="0,58,113,96" HREF="http://stocks.hotbot.com/">
+ <AREA SHAPE=RECT COORDS="0,97,113,116" HREF="/partners/forumone.html">
+ <AREA SHAPE=RECT COORDS="0,117,113,134" HREF="/partners/filez.html">
+ <AREA SHAPE=RECT COORDS="0,160,113,180" HREF="/partners/business.html">
+ <AREA SHAPE=RECT COORDS="0,181,113,200" HREF="/partners/people.html">
+ <AREA SHAPE=RECT COORDS="0,201,113,219" HREF="/partners/email.html">
+</MAP>
+
+
+<!-- end partners insertion -->
+
+   <!-- #include virtual="/meta/search_partners2.htmlf" -->
+
+  </TD>
+  <TD WIDTH=16 ALIGN=LEFT VALIGN=TOP ROWSPAN=12>	<!-- 1-12, 2 -->
+   <img src="http://static.hotbot.com/images/spacer.gif" width=16 height=1 border=0>
+  </TD>
+  <TD WIDTH=330 ALIGN=LEFT VALIGN=TOP COLSPAN=4>	<!-- 1, 3-6 -->
+   
+   <IMG SRC="http://static.hotbot.com/images/spacer.gif" width=330 height=1 border=0>
+  </TD>
+  <TD WIDTH=20  ALIGN=LEFT VALIGN=MIDDLE COLSPAN=1 ROWSPAN=17>	<!-- 1-17, 7 -->
+   &nbsp;
+   <!--<img src="http://static.hotbot.com/images/spacer.gif" WIDTH=15 HEIGHT=50 BORDER=0>-->
+  </TD>
+  <TD WIDTH=125 VALIGN=top ALIGN=RIGHT ROWSPAN=17>		<!-- 1-17, 8 -->
+   <img src="http://static.hotbot.com/images/spacer.gif" height=8 width=1 border=0><BR>
+   <!-- below is 120x60 commerce image -->
+   <a href="http://nsads.hotwired.com/event.ng/Type=click&ProfileID=89&RunID=350&AdID=813&Redirect=http:%2F%2Fspeedserve.com%2Fcgi-bin%2Fmsrvr%2F%3Bexecmacro%2Fpreferred.d2w%2Fdisplay%3Fgroup%3DWired%26subgroup%3D0%26url%3D%2Fspeedsrv%2Falliance%2FWired.html" TARGET="_top"><img src="http://static.wired.com/advertising/blipverts/inter_images/vs_lost.gif" border=1 height=60 width=120 alt="Get Liar Liar for only $17.99 -- honest!"></a>
+   <BR> 
+   <center>
+   <a href="/vendors/merchants.html"><font color=#00ffff face="geneva, arial" size=1><b>Find more deals</a>
+   </center>
+   <BR>
+   <BR>
+   <img src="http://static.hotbot.com/images/list3.gif" width=125 height=402 border=0 USEMAP="#shopmap" border=0>
+   <BR>
+   <center>
+   <a href="/vendors/longlist.html"><font color=#00ffff>More merchants</font></a></b></font>
+   </center>
+   <BR>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37>		<!-- 2, 3 -->
+   <img src="http://static.hotbot.com/images/date.gif" width=37 height=7 border=0 ALT="Date">
+  </TD>
+  <TD WIDTH=293 ALIGN=LEFT COLSPAN=3>	<!-- 2, 4-6 -->
+   <INPUT TYPE=checkbox NAME="date" VALUE="within"  >
+   <SELECT NAME="DV">
+    <OPTION VALUE="7"    >in the last week
+    <OPTION VALUE="14"   >in the last 2 weeks
+    <OPTION VALUE="30"   >in the last month
+    <OPTION VALUE="90"   >in the last 3 months
+    <OPTION VALUE="180"  >in the last 6 months
+    <OPTION VALUE="365"  >in the last year
+    <OPTION VALUE="730"  >in the last 2 years
+   </SELECT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37>		<!-- 3, 3 -->
+   <!-- <img src="/images/domain.gif" width=37 border=0 ALT="Domain"> -->
+  </TD>
+  <TD WIDTH=293 ALIGN=LEFT COLSPAN=3></TD>		<!-- 3, 4-6 -->
+ </TR>
+ <TR>
+  <TD WIDTH=37>		<!-- 4, 3 -->
+   <IMG SRC="http://static.hotbot.com/images/continent.gif" WIDTH=37 HEIGHT=7 ALT="Continent">
+  </TD>
+  <TD WIDTH=293 COLSPAN=3>			<!-- 4, 4-6 -->
+   <INPUT TYPE=checkbox NAME="RD" VALUE="RG"  >
+   <SELECT NAME="RG">
+    <OPTION VALUE=".com"  >North America (.com)
+    <OPTION VALUE=".net"  >North America (.net)
+    <OPTION VALUE=".edu"  >North America (.edu)
+    <OPTION VALUE=".org"  >North America (.org)
+    <OPTION VALUE=".gov"  >North America (.gov)
+    <OPTION VALUE="NA"    >North America (all)
+    <OPTION VALUE="EU"    >Europe
+    <OPTION VALUE="SE"    >Southeast Asia
+    <OPTION VALUE="AS"    >India & Asia
+    <OPTION VALUE="SA"    >South America
+    <OPTION VALUE="DU"    >Oceania
+    <OPTION VALUE="AF"    >Africa
+    <OPTION VALUE="ME"    >Middle East
+    <OPTION VALUE="CA"    >Central America
+   </SELECT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37></TD>				<!-- 5, 3 -->
+  <TD WIDTH=293 COLSPAN=3 ALIGN=LEFT VALIGN=MIDDLE>		<!-- 5, 4-6 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#003300><img src="http://static.hotbot.com/images/spacer.gif" height=6 width=10>
+   <br>Include media type:</font><br>
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#003300>
+   <INPUT TYPE=checkbox NAME="FVI"  >Image
+   <INPUT TYPE=checkbox NAME="FRA"  >Audio 
+   <INPUT TYPE=checkbox NAME="FVV"  >Video 
+   <INPUT TYPE=checkbox NAME="FSW"  >Shockwave
+   </FONT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37 ></TD>		<!-- 6, 3 -->
+  <TD WIDTH=293 VALIGN=BOTTOM COLSPAN=3>		<!-- 6, 4-6 -->
+   <img src="http://static.hotbot.com/images/spacer.gif" width=1 height=8 border=0><BR>
+   <FONT FACE="geneva, arial" SIZE=1>Return Results:</FONT><BR>
+   <img src="http://static.hotbot.com/images/spacer.gif" width=1 height=2 border=0></TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37 ></TD>				<!-- 7, 3 -->
+  <TD WIDTH=293 COLSPAN=3>			<!-- 7, 4-6 -->
+   <SELECT NAME="DC" >
+    <OPTION VALUE="10"  >10
+    <OPTION VALUE="25"  >25
+    <OPTION VALUE="50"  >50
+    <OPTION VALUE="100"  >100
+   </SELECT>
+   <SELECT NAME="DE">
+    <OPTION VALUE="2"  >full descriptions
+    <OPTION VALUE="1"  >brief descriptions
+    <OPTION VALUE="0"  >URLs only
+   </SELECT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37 ></TD>				<!-- 8, 3 -->
+  <TD WIDTH=293 VALIGN=TOP COLSPAN=3>		<!-- 8, 4-6 -->
+<!-- Super Button *was* here -->
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=37 ></TD>					<!-- 9, 3 -->
+  <TD WIDTH=293 ALIGN=LEFT VALIGN=BOTTOM COLSPAN=3>&nbsp;</TD>	<!-- 9, 4-6 -->
+ </TR>
+ <TR>
+  <TD WIDTH=37 ></TD>					<!-- 10, 3 -->
+  <TD WIDTH=293 ALIGN=LEFT VALIGN=BOTTOM COLSPAN=3></TD>	<!-- 10, 4-6 -->
+ </TR>
+ <TR>
+  <TD WIDTH=330 ALIGN=LEFT VALIGN=BOTTOM COLSPAN=4>		<!-- 11, 3-6 -->
+   <a href="index.html"><img src="http://static.hotbot.com/images/clear.gif" border=0 ALT="Clear Form"></a>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=330 COLSPAN=4>&nbsp;</TD>		<!-- 12, 3-6 -->
+ </TR>
+ <TR>
+  <TD WIDTH=460 COLSPAN=6>			<!-- 13, 1-6 -->
+   <BR><IMG SRC="http://static.hotbot.com/images/label_cybrarian_green.gif" WIDTH=439 HEIGHT=23 BORDER=0>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=130 ROWSPAN=4 COLSPAN=2></TD>	<!-- 14-17, 1-2 -->
+
+<!-- CYBRARIAN TABLE: each col is 110 wide, each row is 110 high -->
+
+  <TD WIDTH=330 HEIGHT=1 COLSPAN=4>			<!-- 14, 3-6 -->
+   <img src="http://static.hotbot.com/images/spacer.gif" width=330 height=1 border=0>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP COLSPAN=2>	<!-- 15, 3-4 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>REFERENCE<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/stats.html">
+   <FONT COLOR=#666600>Statistics</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/people.html">
+   <FONT COLOR=#666600>People finder</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/words.html">
+   <FONT COLOR=#666600>Dictionaries</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/words.html">
+   <FONT COLOR=#666600>Style guides</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/maps.html">
+   <FONT COLOR=#666600>Atlases</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/reference/maps.html">
+   <FONT COLOR=#666600>Maps</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>		<!-- 15, 5 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>TECHNOLOGY<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/news.html">
+   <FONT COLOR=#9933ff>News</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/comp.html">
+   <FONT COLOR=#9933ff>Computing</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/download.html">
+   <FONT COLOR=#9933ff>Downloads</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/web.html">
+   <FONT COLOR=#9933ff>Web tools</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/tutorials.html">
+   <FONT COLOR=#9933ff>Programming</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/tech/techorgs.html">
+   <FONT COLOR=#9933ff>Organizations</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>	 	<!-- 15, 6 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>CURRENT<BR>&nbsp;AFFAIRS<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/politics/news.html">
+   <FONT COLOR=#cc0099>News</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/politics/commentary.html">
+   <FONT COLOR=#cc0099>Commentary</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/politics/cyber.html">
+   <FONT COLOR=#cc0099>Cyber rights</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/politics/us_gov.html">
+   <FONT COLOR=#cc0099>US government</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/politics/world.html">
+   <FONT COLOR=#cc0099>World</FONT></A><BR>
+   </FONT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP COLSPAN=2>	<!-- 16, 3-4 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>BUSINESS<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/news.html">
+   <FONT COLOR=#666600>News</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/ad.html">
+   <FONT COLOR=#666600>Advertising</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/ad.html">
+   <FONT COLOR=#666600>Marketing</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/company.html">
+   <FONT COLOR=#666600>Yellow pages</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/orgs.html">
+   <FONT COLOR=#666600>Organizations</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/business/jobs.html">
+   <FONT COLOR=#666600>Careers</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>		<!-- 16, 5 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>INVESTING/<BR>&nbsp;FINANCE<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/invest/stocks.html">
+   <FONT COLOR=#9933ff>Stocks</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/invest/indices.html">
+   <FONT COLOR=#9933ff>Indices</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/invest/sec.html">
+   <FONT COLOR=#9933ff>SEC filings</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/invest/sec.html">
+   <FONT COLOR=#9933ff>IPOs</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/invest/research.html">
+   <FONT COLOR=#9933ff>Research</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>		<!-- 16, 6 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>&nbsp;HEALTH/<BR> &nbsp;SCIENCE<BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/health/wellness.html">
+   <FONT COLOR=#cc0099>Wellness</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/health/resources.html">
+   <FONT COLOR=#cc0099>Resources</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/health/sci_orgs.html">
+   <FONT COLOR=#cc0099>Organizations</FONT></A><BR>
+   <A HREF= "http://www.wired.com/cybrarian/frame/health/sci_research.html">
+   <FONT COLOR=#cc0099>Research</FONT></A><BR>
+   </FONT>
+  </TD>
+ </TR>
+ <TR>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP COLSPAN=2>	<!-- 17, 3-4 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>CULTURE<BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/culture/art.html">
+   <FONT COLOR=#666600>Art</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/culture/books.html">
+   <FONT COLOR=#666600>Books</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/culture/film.html">
+   <FONT COLOR=#666600>Film</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/culture/music.html">
+   <FONT COLOR=#666600>Music</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>		<!-- 17, 5 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>MEDIA<BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/media/newspapers.html">
+   <FONT COLOR=#9933ff>Newspapers</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/media/magazines.html">
+   <FONT COLOR=#9933ff>Magazines</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/media/radiotv.html">
+   <FONT COLOR=#9933ff>TV</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/media/radiotv.html">
+   <FONT COLOR=#9933ff>Radio</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/media/zines.html">
+   <FONT COLOR=#9933ff>Internet</FONT></A><BR>
+   </FONT>
+  </TD>
+  <TD WIDTH=110 HEIGHT=110 VALIGN=TOP>		<!-- 17, 6 -->
+   <FONT FACE="geneva, arial" SIZE=1 COLOR=#ffffcc>REC<BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/rec/auto.html">
+   <FONT COLOR=#cc0099>Auto</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/rec/travel.html">
+   <FONT COLOR=#cc0099>Travel</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/rec/sports.html">
+   <FONT COLOR=#cc0099>Sports</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/rec/games.html">
+   <FONT COLOR=#cc0099>Games</FONT></A><BR>
+   <A HREF="http://www.wired.com/cybrarian/frame/rec/vice.html">
+   <FONT COLOR=#cc0099>Vice</FONT></A><BR>
+   </FONT>
+  </TD>
+ </TR>
+</TABLE>
+
+<font face="Arial, Helvetica" size=1 color="#FFFFFF">
+<a href="http://help.hotbot.com/tidbits.html">Sign up</a> for<br> search tips and<br> news about HotBot. 
+
+</font>
+<INPUT TYPE="hidden" NAME="OPs" VALUE="MDRTP">
+<INPUT TYPE="hidden" NAME="_v" VALUE="2">
+<INPUT TYPE="hidden" NAME="DU" VALUE="days">
+<INPUT TYPE="hidden" NAME="SW" VALUE="web">
+
+</FORM>
+<br>
+<A HREF="http://www.inktomi.com/"><IMG src="http://static.hotbot.com/images/imap_ads.gif" 
+USEMAP="#admap" BORDER=0 ALT="powered by INKTOMI" width=478 height=50></A>
+<br>
+
+<MAP NAME="admap">
+ <AREA coords="0,0,126,50"   href="http://www.inktomi.com/"></AREA>
+ <AREA coords="300,3,384,33" href="http://home.netscape.com/"></AREA>
+ <AREA coords="390,3,477,33" href="http://www.microsoft.com/ie/"></AREA>
+</MAP>
+
+<font face="Arial, Helvetica" size=1>
+<img src="http://static.hotbot.com/images/spacer.gif" height=1 width=130 border=0">
+Copyright &#169; 1996-97 Wired Digital, Inc. All rights reserved.
+</font>
+
+<img src="http://ad.preferences.com/image.ng;spacedesc=TCWired_Wired_1x1_Home_Any&random=04oypOYOSwD5" WIDTH=1 HEIGHT=1>
+
+<img src="http://static.hotbot.com/special/truecount/truecount_hotbot.gif?04oypOYOSwD5" WIDTH=1 HEIGHT=1>
+
+
+</body>
+</html>

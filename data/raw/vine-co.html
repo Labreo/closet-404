@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<title>Vine</title>
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# vine-app: http://ogp.me/ns/fb/vine-app#">
+	<link rel="stylesheet" type="text/css" href="/static/style.css?3">
+	
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script src="/static/spin.min.js"></script>
+<script>
+	$(function () {
+
+		var submitting = false;
+
+		var opts = {
+			lines: 13, // The number of lines to draw
+			length: 7, // The length of each line
+			width: 5, // The line thickness
+			radius: 18, // The radius of the inner circle
+			corners: 1, // Corner roundness (0..1)
+			rotate: 0, // The rotation offset
+			color: '#fff', // #rgb or #rrggbb
+			speed: 1, // Rounds per second
+			trail: 60, // Afterglow percentage
+			shadow: true, // Whether to render a shadow
+			hwaccel: false, // Whether to use hardware acceleration
+			className: 'spinner', // The CSS class to assign to the spinner
+			zIndex: 2e9, // The z-index (defaults to 2000000000)
+			top: 'auto', // Top position relative to parent in px
+			left: 'auto' // Left position relative to parent in px
+		};
+		var target = document.getElementById('loader');
+		var spinner = new Spinner(opts);
+
+		$('#subscribe').submit(function () {
+			if (!submitting && $('#email').val()) {
+				$('#loader').addClass('show');
+				spinner.spin(target);
+				submitting = true;
+
+				$.ajax({
+					url: '/mailinglist/emails?email=' + encodeURIComponent($('#email').val()),
+					dataType: 'json'
+				}).done(function (data) {
+					$('#loader').removeClass('show');
+					spinner.stop();
+					submitting = false;
+					$('#subscribe').html('<p><strong>Thanks! We\'ll email you when Vine is released.</strong></p>');
+				}).fail(function (data) {
+					$('#loader').removeClass('show');
+					spinner.stop();
+					submitting = false;
+
+					setTimeout(function () {
+						var json = $.parseJSON(data.responseText);
+						switch (json.code) {
+							case 214:
+								alert('That email address is already signed up.');
+								break;
+							case 502:
+								alert('That email address is invalid.');
+								break;
+							default:
+								alert(json.error);
+								break;
+						}
+					}, 500);
+				});
+				return false;
+			} else {
+				return false;
+			}
+		});
+	});
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-34240974-1']);
+		_gaq.push(['_setDomainName', 'vine.co']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+</head>
+
+<body class="teaser-page">
+
+
+
+	<h1>
+		<img src="/static/images/grey_logo.png" width="234" height="106" alt="Vine">
+	</h1>
+	<p>Vine is the best way to capture and share video on your iPhone. No editing. No rendering. No post-production. Video has never been this fun.</p>
+	<p>We're not ready for you yet, but we will be soon. Sign up below to be notified when Vine is released.</p>
+	<form id="subscribe">
+		<input id="email" type="text" placeholder="Your email address">
+		<button class="action-button">Submit</button>
+	</form>
+	<footer>
+		<img src="/static/images/copyright.png" alt="&copy; 2012">
+	</footer>
+	<div id="loader"></div>
+
+</body>
