@@ -7,8 +7,6 @@ services:
     startCommand: npm start
     healthCheckPath: /archive
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: LLM_BASE_URL
         value: https://generativelanguage.googleapis.com/v1beta/openai/
       - key: LLM_MODEL
