@@ -12,12 +12,10 @@ services:
       - key: LLM_BASE_URL
         value: https://generativelanguage.googleapis.com/v1beta/openai/
       - key: LLM_MODEL
-        value: gemma-4-31b-it
-      - key: LLM_FALLBACK_MODEL
         value: gemma-4-26b-a4b-it
+      - key: LLM_FALLBACK_MODEL
+        value: gemma-4-31b-it
       - key: LLM_API_KEY
         sync: false
       - key: SERPAPI_API_KEY
-        sync: false
-      - key: ELEVENLABS_API_KEY
         sync: false

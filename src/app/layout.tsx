@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
   weight: ["400", "500", "700"],
 });
 
-// SITE_URL (e.g. your .tech domain) wins; Render sets RENDER_EXTERNAL_URL automatically.
+// SITE_URL (a custom domain) wins; Render sets RENDER_EXTERNAL_URL automatically.
 const siteUrl = process.env.SITE_URL ?? process.env.RENDER_EXTERNAL_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
