@@ -289,16 +289,29 @@ export async function checkLiveStatus(
   }
 }
 
+const ARCHIVIST_SYSTEM_PROMPT = `You are the archivist of Closet 404, an ofrenda for dead websites.
+SOURCE is text scraped from one Wayback Machine snapshot of a website. Write only from SOURCE.
+Never add facts that are not in SOURCE: no founders, funding, shutdown causes, acquisitions or dates beyond those given.
+If something is not in SOURCE, write 'unknown'. Mood, metaphor and sensory language about what IS in SOURCE are allowed.
+Reply with one JSON object and nothing else.`;
+
+export interface SiteLlmResult extends SiteLlmOutput {
+  model: string;
+}
+
 export async function callLlmForSite(
   u: string,
   forensics: SiteForensics,
   firstCaptured: number,
-  lastCaptured: number
-): Promise<SiteLlmOutput> {
+  lastCaptured: number,
+  snapshotTimestamp = ''
+): Promise<SiteLlmResult> {
+  const snapshotYear = snapshotTimestamp.slice(0, 4) || 'unknown';
   const prompt = `SOURCE:
 URL: ${u}
-First Captured Year: ${firstCaptured}
-Last Captured Year: ${lastCaptured}
+Snapshot year: ${snapshotYear}
+First captured by the Wayback Machine: ${firstCaptured}
+Last captured by the Wayback Machine: ${lastCaptured}
 Title: ${forensics.title || 'unknown'}
 Meta Description: ${forensics.metaDescription || 'unknown'}
 Generator: ${forensics.generator || 'unknown'}
@@ -311,56 +324,48 @@ ${forensics.links.length > 0 ? forensics.links.map((l) => `- ${l}`).join('\n') :
 Body Text Sample:
 ${forensics.bodyText}
 
-Analyze this website from the SOURCE provided. Return a JSON object with:
-- "title": Clean concise name or title for this archive entry (string)
-- "category": One of 'geocities', 'dotcom', 'oss', 'webring', 'blog', 'netart', 'other'
-- "eulogy": 2 to 3 sentences, atmospheric but strictly factual based on SOURCE
-- "ghostPersona": First-person voice instructions describing how this website speaks and remembers its era
-- "vibeTags": Exactly 8 lowercase descriptive keywords capturing its visual, era, and cultural vibe (array of 8 strings)
-- "accentColor": Hex color "#RRGGBB" that visually fits the site's era or palette
+Return a JSON object with exactly these keys:
+- "title": the site's own name as it appears in SOURCE (string)
+- "category": one of 'geocities', 'dotcom', 'oss', 'webring', 'blog', 'netart', 'other'
+- "eulogy": 2 to 3 sentences in the voice of a museum placard or an epitaph. Quote one short phrase, filename or HTML comment from SOURCE verbatim inside double quotes. Refer to the end only as "last captured in ${lastCaptured}"; never claim how or why it died.
+- "ghostPersona": second-person instructions (max 80 words) for an actor playing this website's ghost: its tone, the era vocabulary visible in SOURCE, and what it was proud of according to SOURCE.
+- "vibeTags": 8 lowercase single-word tags for its era, look and culture (array of strings)
+- "accentColor": a hex color "#RRGGBB" that fits the site's palette or era
 `;
 
-  // Try LLM call, retry once if parse/validation fails
+  let lastError: unknown = null;
   for (let attempt = 0; attempt < 2; attempt++) {
+    let answeredBy = process.env.LLM_MODEL ?? 'unknown';
     try {
       const reply = await chat({
         messages: [
-          {
-            role: 'system',
-            content:
-              "Use only the SOURCE provided. If something is not in SOURCE, write 'unknown'. Do not invent names, dates, or events.",
-          },
+          { role: 'system', content: ARCHIVIST_SYSTEM_PROMPT },
           { role: 'user', content: prompt },
         ],
         json: true,
-        temperature: 0.4,
-        maxTokens: 600,
+        temperature: 0.5,
+        maxTokens: 900,
+        timeoutMs: 120_000,
+        onModel: (m) => {
+          answeredBy = m;
+        },
       });
 
-      const parsedJson = JSON.parse(reply);
-      const validated = siteLlmOutputSchema.parse(parsedJson);
+      const jsonText = reply.slice(reply.indexOf('{'), reply.lastIndexOf('}') + 1);
+      const validated = siteLlmOutputSchema.parse(JSON.parse(jsonText));
 
-      // Ensure vibeTags has exactly 8 items
-      let vibeTags = validated.vibeTags
+      const vibeTags = validated.vibeTags
         .map((t) => t.toLowerCase().trim().replace(/[^a-z0-9_-]/g, ''))
-        .filter(Boolean);
-      if (vibeTags.length > 8) vibeTags = vibeTags.slice(0, 8);
-      while (vibeTags.length < 8) vibeTags.push('retro');
+        .filter(Boolean)
+        .slice(0, 8);
 
-      return {
-        ...validated,
-        vibeTags,
-      };
+      return { ...validated, vibeTags, model: answeredBy };
     } catch (err) {
-      if (attempt === 0) {
-        process.env.LLM_MODEL = 'gemini-3.5-flash-lite';
-        continue;
-      }
-      throw err;
+      lastError = err;
     }
   }
 
-  throw new Error('LLM call failed after retry');
+  throw lastError instanceof Error ? lastError : new Error('LLM call failed after retry');
 }
 
 /**
@@ -511,7 +516,8 @@ export async function resurrectUrl({
     u,
     selectedSnapshot.forensics,
     firstCaptured,
-    lastCaptured
+    lastCaptured,
+    selectedSnapshot.timestamp
   );
 
   const siteCategory: SiteCategory = u.includes('geocities.com')
@@ -535,7 +541,7 @@ export async function resurrectUrl({
     ghostPersona: llmOutput.ghostPersona,
     vibeTags: llmOutput.vibeTags,
     accentColor: llmOutput.accentColor,
-    generatedBy: process.env.LLM_MODEL ?? 'gemini-3.5-flash-lite',
+    generatedBy: llmOutput.model,
   };
 
   return site;

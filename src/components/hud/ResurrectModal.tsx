@@ -142,7 +142,7 @@ export function ResurrectModal({
               </h2>
             </div>
             <p className="mt-1 font-mono text-xs text-[#8a8578]">
-              Live archaeology • 12s hard limit • in-memory ephemeral
+              Live archaeology · Wayback CDX + Gemma 4 · kept for this visit only
             </p>
           </div>
           <button
@@ -218,8 +218,8 @@ export function ResurrectModal({
                 Reaching into the Wayback Machine archives...
               </p>
               <p className="font-mono text-[11px] text-[#8a8578]">
-                CDX query → HTML decode → Cheerio forensics → LLM eulogy (12s
-                timeout)
+                CDX query → id_ raw HTML → cheerio forensics → Gemma eulogy. Gemma
+                thinks first, so this can take up to a minute.
               </p>
             </div>
           </div>

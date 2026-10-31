@@ -1,174 +1,115 @@
 # Closet 404
 
-A 3D digital mausoleum and archival experience for dead websites—memorializing dot-com crash casualties, GeoCities neighborhoods, and early web experiments as tactile physical media boxes on archival shelves.
+**An ofrenda for the dead web.** A candlelit walk-in closet of websites that went dark, pulled back out of the Wayback Machine. Take a case off the shelf and hold a séance: an open-weight Gemma 4 model speaks as the site, remembering only what survived in its archived HTML.
 
-Built with **Next.js App Router**, **TypeScript strict**, **React Three Fiber (R3F)**, **Three.js**, and **Tailwind CSS**.
+Built for the Hacktoberfest 2026 Open-Source AI Challenge, week 4: *Ghost in the Machine*.
 
----
-
-## What It Is
-
-When websites die, their servers go dark, domains get squatted, and their cultural memory dissolves. *Closet 404* transforms digital archaeology into a physical, interactive space:
-
-- **3D Archival Closet (`/closet`)**: Tight U-shaped room with dark walnut shelves, warm strip lighting, procedural canvas spine textures with authentic typography, and atmospheric postprocessing (Bloom, Vignette, Noise).
-- **Physical Interaction**: Case meshes slide out smoothly on hover (`maath/easing damp3`), fly to camera on click, spin 360° on pointer drag, and return on `Esc` or click-away.
-- **Séance Terminal**: Each site features an interactive terminal drawer where users can commune with the site's ghost. The ghost's responses are constrained strictly to verbatim forensics extracted from real historical HTML (HTML comments, image filenames, ALT tags, meta generator, and body text).
-- **Live "Resurrect a URL" (`/api/resurrect`)**: A live archaeology pipeline querying the Wayback Machine CDX API with a 12-second total timeout, server-wide concurrency lock, in-memory ephemeral caching, and honest telemetry.
-- **BM25 Search (`/api/search`)**: Zero-dependency deterministic keyword search across titles, eulogies, vibe tags, and body text.
+![stack](https://img.shields.io/badge/model-Gemma%204%20(open%20weights)-ff9e00) ![stack](https://img.shields.io/badge/Next.js-16-black) ![stack](https://img.shields.io/badge/three.js-R3F-1d1d1d)
 
 ---
 
-## Why Open Weights Matter Here
+## What you can do
 
-A digital archive cannot depend on proprietary cloud APIs that may themselves become 404 dead services tomorrow.
+| | |
+|---|---|
+| **Walk the closet** | Drag to look, scroll to lean in, W/S to crouch. 31 real sites sit on the shelves among unlabeled blanks, under papel picado, candles and cempasúchil. |
+| **Pull a case** | Click a spine. The case flies to you and turns to show its cover: a period browser window drawn from the site's *real* scraped text and its first HTML comment. Drag to spin it; the back cover carries the eulogy. |
+| **Hold a séance** | Chat with the site's ghost. Gemma is given the snapshot's HTML comments, image filenames, generator tag and body text, and told to quote them verbatim and to admit what it doesn't know. Quotes are highlighted in marigold so you can check them against the Remains tab. |
+| **Read the coroner's report** | The snapshot only remembers a site alive. The coroner runs a live Google search (SerpApi) for how it ended, and Gemma summarises only those results with `[n]` citations. |
+| **Inspect the remains** | The raw forensics: comments, images, outbound links, generator, page text, capture years, and what the address returns today. Nothing on that tab was written by a model. |
+| **Shine the flashlight** | Search by memory ("UFO", "free music", "dating"). Matching spines glow marigold and slide out. |
+| **Resurrect a URL** | Paste any dead domain. The server queries the CDX index, fetches the original bytes with the `id_` replay flag, extracts forensics, asks Gemma for a eulogy and shelves a new case for your session. |
+| **Leave a marigold** | A remembrance note on the site's ofrenda, stored in your browser. |
+| **Hear the ghost** | Replies can be voiced through ElevenLabs (when a key is set) or the browser's own speech synthesis. |
 
-1. **Perpetual Preservation**: Closed-source commercial AI APIs routinely deprecate model endpoints, alter system prompt behaviors, or shut down entirely. Open-weight models (such as Google Gemma) ensure this software can run offline and remain reproducible 20 years from now.
-2. **Sovereignty & Offline Operation**: Running open weights locally guarantees zero telemetry, zero ongoing API subscription costs, zero third-party content filtering of historical web artifacts, and zero network dependencies.
-3. **Faithfulness**: When resurrecting deceased sites, open-weight models running local deterministic inference provide verifiable, reproducible outputs without opaque server-side alterations.
+Every AI-written field (eulogy, persona, tags, séance replies, coroner finding) is labeled with the model that wrote it. Every scraped field links to its archive.org source.
 
 ---
 
-## Running Fully Local with Ollama (Zero API Keys)
+## Why open weights
 
-Closet 404 can run 100% locally on your machine with zero external network requests and zero API keys.
+The web in this closet did not die for lack of storage. It died when somebody switched it off: a host shut down, a startup ran out of money, a platform changed its mind. An archive of switched-off things should not itself depend on a service that can be switched off.
 
-### 1. Install & Run Ollama
-Download and start [Ollama](https://ollama.ai/), then pull the open-weight model:
-```bash
-ollama pull gemma4:e4b
-```
-*(Alternatively, any standard OpenAI-compatible local model tag such as `gemma2:2b` or `llama3.2` can be used).*
+- **It runs with the lights off.** Point `LLM_BASE_URL` at Ollama and the whole app, séances included, runs on your machine with no API keys. The data is committed to the repo.
+- **One env var swaps the host, not the model.** Locally it's `gemma4:e4b` through Ollama; the hosted demo calls the same Gemma 4 open weights through Google AI Studio's OpenAI-compatible endpoint because Render has no GPU. Same client, same prompts (`src/lib/llm.ts`).
+- **Reproducible.** The eulogies in `data/archive.json` were generated by Gemma 4 and record which variant wrote each one. Anyone can regenerate them with `npm run data:ghosts -- --force` and diff.
+- **Costs nothing to run.** Local inference is free; the hosted demo fits the AI Studio free tier.
 
-### 2. Configure Environment
-Copy the example environment template:
-```bash
-cp .env.example .env.local
-```
-The default `.env.example` is preconfigured for local Ollama out of the box:
-```env
-LLM_BASE_URL=http://127.0.0.1:11434/v1
-LLM_MODEL=gemma4:e4b
-LLM_API_KEY=ollama
-```
-*(No account, payment method, or API key is required—`LLM_API_KEY=ollama` satisfies the standard OpenAI-compatible authorization header).*
+Honest limits are at the bottom.
 
-### 3. Install Dependencies & Build
+---
+
+## Run it locally (no keys)
+
 ```bash
 npm ci
-npm run build
+cp .env.example .env.local      # defaults to Ollama + gemma4:e4b
+ollama pull gemma4:e4b
+npm run dev                     # http://localhost:3000
 ```
 
-### 4. Start Production Server
-```bash
-npm start
-```
-Open [http://localhost:3000](http://localhost:3000) or [http://localhost:3000/closet](http://localhost:3000/closet) in your browser.
+`gemma4:e4b` wants roughly 16 GB of RAM to answer at a conversational pace. On an 8 GB machine it works but swaps; use the hosted option below or a smaller Gemma.
 
----
-
-## Running Hosted (Cloud Endpoints & Render)
-
-### Hosted Environment Variables
-To connect Closet 404 to a hosted OpenAI-compatible provider (e.g. Google AI Studio):
+### Hosted model instead
 
 ```env
 LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
-LLM_MODEL=gemini-3.5-flash-lite
-LLM_API_KEY=your_google_ai_studio_api_key_here
+LLM_MODEL=gemma-4-31b-it
+LLM_FALLBACK_MODEL=gemma-4-26b-a4b-it
+LLM_API_KEY=<Google AI Studio key>
 ```
 
-### Deploying to Render
-A [`render.yaml`](render.yaml) blueprint is included in the repository.
-
-#### Option A: Deploy via Render Blueprint
-1. Connect your repository in the Render Dashboard.
-2. Render detects `render.yaml` automatically and configures the web service.
-3. Add `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY` under the service's Environment settings.
-
-#### Option B: Manual Render Dashboard Configuration
-- **Runtime**: `Node`
-- **Build Command**: `npm ci && npm run build`
-- **Start Command**: `npm start`
-- **Environment Variables**:
-  - `NODE_ENV`: `production`
-  - `LLM_BASE_URL`: `https://generativelanguage.googleapis.com/v1beta/openai/`
-  - `LLM_MODEL`: `gemini-3.5-flash-lite`
-  - `LLM_API_KEY`: *(Your API key)*
+Optional: `SERPAPI_API_KEY` for live coroner inquests, `ELEVENLABS_API_KEY` for the ghost's voice.
 
 ---
 
-## How the Data Was Built
+## How the data was built
 
-**NEVER INVENT DATA**: All data in `data/archive.json` is generated strictly by automated scripts from real HTTP fetches to the Wayback Machine. Nothing is hand-written or synthesized.
+Nothing in `data/` is hand-written. Scripts produce all of it from real fetches:
 
-### The Pipeline (`scripts/build-archive.ts`)
-Input seed URLs are read sequentially from `data/seed-urls.txt`:
-1. **Polite Crawling & Rate Limits**:
-   - Enforces a strict 4-second sleep between any two requests to `web.archive.org`.
-   - Sends `User-Agent: Closet404/1.0 (hackathon)`.
-   - On HTTP 429 or 503, backs off for 30 seconds and retries up to 3 times before logging and skipping.
-2. **CDX Indexing**:
-   - Queries `https://web.archive.org/cdx/search/cdx?url=<u>&output=json&filter=statuscode:200&filter=mimetype:text/html&collapse=timestamp:6&limit=200`.
-   - Extracts `firstCaptured` and `lastCaptured` years from the boundary rows.
-   - Selects the earliest capture in the first third of the range whose HTML exceeds 2KB (testing up to 3 candidates).
-3. **Accurate Character Set Decoding**:
-   - Fetches raw bytes and detects charset from the `Content-Type` header or `<meta>` tags (decoding legacy Windows-1252 / CP1252 / ISO-8859-1 via `TextDecoder` rather than corrupting text with naive UTF-8).
-4. **Cheerio Forensics Extraction**:
-   - Title and meta description.
-   - Meta generator tag.
-   - Up to 8 real HTML comments (excluding archive.org wrappers and boilerplate).
-   - Up to 8 images `{src, alt}`.
-   - Up to 8 outbound links (excluding web.archive.org).
-   - Visible body text (stripping scripts, styles, svgs, and iframes; max 2500 characters).
-   - Integrity check: If body text is under 200 characters (e.g. image-only pages or framesets), the site is skipped with the reason logged.
-5. **Live Status Verification**:
-   - Sends a HEAD request (with GET fallback and 6s timeout) to the modern URL.
-   - Records live HTTP status code and redirect targets.
-6. **Constrained AI Synthesis**:
-   - Calls the model with temperature 0.4 and JSON mode.
-   - Enforces system instruction: *"Use only the SOURCE provided. If something is not in SOURCE, write 'unknown'. Do not invent names, dates, or events."*
-   - Validates response schema against Zod (`title`, `category`, `eulogy`, `ghostPersona`, `vibeTags`, `accentColor`).
-7. **Storage & Resumability**:
-   - Saves raw historical HTML snapshots to `data/raw/<id>.html`.
-   - Writes verified metadata to `data/archive.json` (committed in repo).
-   - Supports resume: skips sites already indexed in `data/archive.json`.
+| Script | What it does |
+|---|---|
+| `npm run data:build` (`scripts/build-archive.ts`) | For each URL in `data/seed-urls.txt`: queries the Wayback CDX API (4 s between requests, backs off on 429/503), picks an early capture with real HTML, fetches it with the `id_` modifier (original bytes, no toolbar), decodes the charset, extracts forensics with cheerio, checks what the live URL returns today, and asks the model for title / category / eulogy / persona / tags. Raw HTML is kept in `data/raw/`. |
+| `npm run data:ghosts` (`scripts/regen-ghosts.ts`) | Re-runs only the model step over the stored forensics. No archive.org traffic. |
+| `npm run data:coroner` (`scripts/coroner.ts`) | One SerpApi Google search per domain for how it ended, then a Gemma summary that may only cite those results. Writes `data/coroner.json`. |
+| `scripts/prune.ts <id>` | Removes a curated-out entry and renumbers spines. (Used once: delicious.com's 1996 snapshot turned out to be an adult link index.) |
+
+Capture years are what the CDX index reports, not birth and death dates. A domain can keep getting captured as a parked page long after the site died, which is why some "last captured" years are recent; the coroner tab carries the real story.
 
 ---
 
-## Known Limitations
+## Architecture
 
-- **Image-Only & Flash/Frameset Sites**: Early web pages with under 200 characters of visible text or HTML <= 2KB are intentionally rejected by the pipeline to avoid guessing or hallucinating facts.
-- **Wayback Machine Rate Limits**: The live resurrection API (`/api/resurrect`) operates with a strict 12-second total timeout. If the Internet Archive returns HTTP 429/503 during peak traffic, the route returns an honest error message (`"archive.org rate limited, try again in a minute"`) rather than failing silently or substituting fake data.
-- **Hardware Acceleration**: The 3D archival closet uses Three.js and React Three Fiber, requiring WebGL support in the user's browser.
-
----
-
-## Available Repository Commands
-
-All commands below exist and run directly in this codebase:
-
-```bash
-# Start Next.js development server
-npm run dev
-
-# Run ESLint quality checks
-npm run lint
-
-# Compile and typecheck production build
-npm run build
-
-# Start production server
-npm start
-
-# TypeScript static typecheck
-npx tsc --noEmit
-
-# Test LLM connectivity and verify configuration
-npx tsx scripts/ping-llm.ts
-
-# Run the archival builder script across seed URLs
-npx tsx scripts/build-archive.ts
-
-# Optional offline embeddings generator
-npx tsx scripts/embed.ts
 ```
+data/seed-urls.txt
+   │  scripts/build-archive.ts      Wayback CDX ─▶ id_ raw HTML ─▶ cheerio forensics ─▶ Gemma 4 (JSON)
+   ▼
+data/archive.json + data/raw/*.html
+   │  scripts/coroner.ts            SerpApi web search ─▶ Gemma 4 cited summary
+   ▼
+data/coroner.json
+   │
+   ├─ /                 3D closet (R3F, client-only)  ── /api/seance   streaming Gemma ghost
+   ├─ /archive          editorial index               ── /api/search   BM25 over tags, eulogy, body
+   └─ /site/[id]        static dossier per site       ── /api/resurrect live CDX + Gemma
+                                                       ── /api/coroner  live SerpApi inquest
+                                                       ── /api/voice    ElevenLabs TTS (optional)
+```
+
+- `src/lib/llm.ts`: one `fetch`-based OpenAI-compatible client. Strips Gemma's `<thought>` blocks (streamed or not), retries 429/5xx once, then falls back to `LLM_FALLBACK_MODEL`.
+- `src/lib/seance.ts`: the ghost's system prompt. SOURCE is the snapshot; RECORDS are coroner citations; the rules forbid stating anything outside them.
+- `src/components/closet/`: the room. Spine, cover and back textures are drawn once per site on canvases after the fonts load (16x anisotropy, mipmaps), unlabeled cases are a single `InstancedMesh`, motion is `maath/easing` damping throughout.
+- `src/lib/sound.ts`: Web Audio foley with zero audio files (shelf ticks, case slides, room tone, candle crackle).
+
+---
+
+## Known limitations
+
+- **31 sites.** The build script is deliberately slow to respect archive.org's rate limits; framesets and image-only pages are skipped rather than guessed at.
+- **Search is keyword (BM25)** over the site text plus Gemma-written vibe tags, not embeddings.
+- **Small models paraphrase.** The prompt demands verbatim quotes and the UI highlights them, but a 4B-class model occasionally rephrases one. The Remains tab is there so you can check.
+- **The hosted demo is not offline.** It calls Gemma 4 through Google AI Studio's free tier, where Google may use prompts to improve its services. Only public archived pages are sent. Run locally for a fully private séance.
+- **Resurrections live in memory** for your session and are not written to disk. Ofrenda notes live in your browser's localStorage.
+- **Rate limits.** Séances are limited per IP to keep the free tier alive; the message suggests running locally.
+
+AI assistance was used to write code for this project.

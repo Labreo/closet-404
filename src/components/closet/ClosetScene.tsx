@@ -1,211 +1,217 @@
 'use client';
 
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import {
-  EffectComposer,
-  Bloom,
-  Vignette,
-  Noise,
-} from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
 import { easing } from 'maath';
 import type { Site } from '@/types/archive';
 import { ClosetRoom } from './ClosetRoom';
-import { closetStore, useClosetStore } from './useClosetStore';
+import { closetStore, interaction, useClosetStore } from './useClosetStore';
+import { sound } from '@/lib/sound';
 
-function RendererInfoLogger() {
-  const { gl } = useThree();
-  const loggedRef = useRef(false);
-
-  useFrame(() => {
-    if (!loggedRef.current && gl.info.render.frame > 4) {
-      loggedRef.current = true;
-      console.log('Renderer Info:', {
-        calls: gl.info.render.calls,
-        triangles: gl.info.render.triangles,
-        textures: gl.info.memory.textures,
-        geometries: gl.info.memory.geometries,
-      });
-    }
-  });
-
-  return null;
-}
+const LOOK = { yawMax: 1.15, pitchMin: -0.38, pitchMax: 0.32 };
+const HEIGHT = { min: -0.35, max: 0.5 };
+const FOV = { min: 28, max: 62, initial: 54 };
 
 /**
- * Handles camera FOV zoom (between 62 and 30) via scroll wheel
- * and camera Y movement (between -0.4 and 0.5) via W/S or Arrow keys.
- * Also handles Esc key to put the case back.
+ * Drag to look, wheel to zoom (fov), W/S or arrows to crouch/rise, A/D or
+ * arrows to turn. Dragging a held case spins it instead of the camera.
  */
-function CameraController() {
-  const targetFovRef = useRef(50);
-  const targetCameraYRef = useRef(0.1);
+function CameraRig() {
+  const gl = useThree((state) => state.gl);
+  const target = useRef({ yaw: 0, pitch: 0.03, fov: FOV.initial, y: 0.18 });
+  const drag = useRef({ active: false, x: 0, y: 0, lastDx: 0 });
 
   useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      // Zoom by damping camera fov between 62 and 30
-      const delta = e.deltaY * 0.035;
-      targetFovRef.current = Math.min(62, Math.max(30, targetFovRef.current + delta));
-    };
+    const el = gl.domElement;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // If typing in input, ignore
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA'
-      ) {
+    const onDown = (e: PointerEvent) => {
+      drag.current = { active: true, x: e.clientX, y: e.clientY, lastDx: 0 };
+      interaction.dragDistance = 0;
+    };
+    const onMove = (e: PointerEvent) => {
+      const d = drag.current;
+      if (!d.active) return;
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      d.x = e.clientX;
+      d.y = e.clientY;
+      d.lastDx = dx;
+      interaction.dragDistance += Math.abs(dx) + Math.abs(dy);
+      if (interaction.draggingCase) {
+        interaction.spin += dx * 0.012;
         return;
       }
-
-      if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
-        targetCameraYRef.current = Math.min(
-          0.5,
-          targetCameraYRef.current + 0.08
-        );
-      } else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
-        targetCameraYRef.current = Math.max(
-          -0.4,
-          targetCameraYRef.current - 0.08
-        );
-      } else if (e.key === 'Escape') {
-        closetStore.deselectSite();
+      const t = target.current;
+      // Slower look while zoomed in.
+      const zoomScale = t.fov / FOV.initial;
+      t.yaw = THREE.MathUtils.clamp(t.yaw + dx * 0.0032 * zoomScale, -LOOK.yawMax, LOOK.yawMax);
+      t.pitch = THREE.MathUtils.clamp(t.pitch + dy * 0.0028 * zoomScale, LOOK.pitchMin, LOOK.pitchMax);
+    };
+    const onUp = () => {
+      if (interaction.draggingCase) {
+        interaction.spinVelocity = drag.current.lastDx * 0.6;
+        interaction.draggingCase = false;
+        document.body.style.cursor = '';
+      }
+      drag.current.active = false;
+    };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const t = target.current;
+      t.fov = THREE.MathUtils.clamp(t.fov + e.deltaY * 0.03, FOV.min, FOV.max);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const t = target.current;
+      switch (e.key) {
+        case 'w':
+        case 'W':
+        case 'ArrowUp':
+          t.y = Math.min(HEIGHT.max, t.y + 0.1);
+          break;
+        case 's':
+        case 'S':
+        case 'ArrowDown':
+          t.y = Math.max(HEIGHT.min, t.y - 0.1);
+          break;
+        case 'a':
+        case 'A':
+        case 'ArrowLeft':
+          t.yaw = Math.min(LOOK.yawMax, t.yaw + 0.25);
+          break;
+        case 'd':
+        case 'D':
+        case 'ArrowRight':
+          t.yaw = Math.max(-LOOK.yawMax, t.yaw - 0.25);
+          break;
+        case 'Escape':
+          if (closetStore.getState().selectedSiteId) {
+            sound.putBack();
+            closetStore.deselectSite();
+          }
+          break;
+        default:
+          return;
       }
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    window.addEventListener('keydown', handleKeyDown);
-
+    el.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('keydown', onKey);
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('keydown', handleKeyDown);
+      el.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      el.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [gl]);
 
   useFrame((state, delta) => {
-    // 1. Damp camera FOV between 62 and 30
-    const camera = state.camera as THREE.PerspectiveCamera;
-    if (camera.isPerspectiveCamera) {
-      easing.damp(camera, 'fov', targetFovRef.current, 0.2, delta);
-      camera.updateProjectionMatrix();
-    }
-
-    // 2. Damp camera Y position between -0.4 and 0.5
-    easing.damp(state.camera.position, 'y', targetCameraYRef.current, 0.2, delta);
+    const dt = Math.min(delta, 0.05);
+    const cam = state.camera as THREE.PerspectiveCamera;
+    const t = target.current;
+    cam.rotation.order = 'YXZ';
+    // Subtle parallax from the pointer so the room breathes even when idle.
+    const parallaxYaw = -state.pointer.x * 0.035;
+    const parallaxPitch = state.pointer.y * 0.025;
+    easing.damp(cam.rotation, 'y', t.yaw + parallaxYaw, 0.25, dt);
+    easing.damp(cam.rotation, 'x', t.pitch + parallaxPitch, 0.25, dt);
+    easing.damp(cam.position, 'y', t.y, 0.3, dt);
+    // Portrait screens see too little shelf at the desktop fov; widen it.
+    const portraitBoost = cam.aspect < 0.8 ? 16 : 0;
+    easing.damp(cam, 'fov', t.fov + portraitBoost, 0.2, dt);
+    cam.updateProjectionMatrix();
   });
 
   return null;
 }
 
-/**
- * Cursor Flashlight:
- * SpotLight (angle 0.48, penumbra 0.85, intensity ~3)
- * Target follows the pointer ray intersection with the shelf plane, damped.
- */
-function CursorFlashlight() {
-  const spotLightRef = useRef<THREE.SpotLight>(null);
-  const targetObj = useMemo(() => new THREE.Object3D(), []);
+/** Flashlight cone that follows the pointer ray. */
+function Flashlight() {
+  const light = useRef<THREE.SpotLight>(null);
+  const aim = useMemo(() => new THREE.Object3D(), []);
+  const goal = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state, delta) => {
-    if (!spotLightRef.current) return;
-
-    // Pointer is in [-1, 1] normalized coordinates
-    // Intersect pointer ray with shelf plane (approx Z = -0.45)
-    const targetX = state.pointer.x * 0.7;
-    const targetY = state.camera.position.y + state.pointer.y * 0.55;
-    const targetZ = -0.45;
-
-    easing.damp3(targetObj.position, [targetX, targetY, targetZ], 0.12, delta);
-    targetObj.updateMatrixWorld();
-
-    // Flashlight origin stays near the camera, slightly above
-    easing.damp3(
-      spotLightRef.current.position,
-      [
-        state.camera.position.x + state.pointer.x * 0.08,
-        state.camera.position.y + 0.05,
-        state.camera.position.z,
-      ],
-      0.12,
-      delta
-    );
+    const spot = light.current;
+    if (!spot) return;
+    state.raycaster.setFromCamera(state.pointer, state.camera);
+    goal.copy(state.raycaster.ray.origin).addScaledVector(state.raycaster.ray.direction, 1.8);
+    easing.damp3(aim.position, goal, 0.1, delta);
+    aim.updateMatrixWorld();
+    easing.damp3(spot.position, [state.camera.position.x, state.camera.position.y + 0.08, state.camera.position.z + 0.05], 0.1, delta);
+    // A held case sits right under the beam; soften it so the cover is readable.
+    easing.damp(spot, 'intensity', closetStore.getState().selectedSiteId ? 0.6 : 7, 0.3, delta);
   });
 
   return (
     <>
-      <primitive object={targetObj} />
+      <primitive object={aim} />
       <spotLight
-        ref={spotLightRef}
-        target={targetObj}
-        angle={0.48}
+        ref={light}
+        target={aim}
+        angle={0.36}
         penumbra={0.85}
-        intensity={3.0}
-        color="#fff4e6"
-        distance={4.5}
+        intensity={7}
+        color="#fff1d6"
+        distance={5}
         decay={2}
       />
     </>
   );
 }
 
-interface ClosetSceneProps {
-  sites: Site[];
+function SceneLights() {
+  return (
+    <>
+      <hemisphereLight args={['#ffe2b8', '#2a1a12', 0.9]} />
+      <pointLight position={[0, 1.2, -0.35]} color="#ffd6a0" intensity={2.6} distance={5} decay={2} />
+      <pointLight position={[0, 1.2, 0.55]} color="#ffd6a0" intensity={1.6} distance={5} decay={2} />
+    </>
+  );
 }
 
-export default function ClosetScene({ sites }: ClosetSceneProps) {
+interface ClosetSceneProps {
+  sites: Site[];
+  /** Index in `sites` where this visit's live resurrections begin. */
+  resurrectedFrom: number;
+}
+
+export default function ClosetScene({ sites, resurrectedFrom }: ClosetSceneProps) {
   const selectedSiteId = useClosetStore((s) => s.selectedSiteId);
 
   return (
-    <div className="w-full h-full relative select-none">
+    <div className="absolute inset-0 select-none touch-none">
       <Canvas
         dpr={[1, 2]}
-        camera={{ position: [0, 0.1, 1.35], fov: 50 }}
-        gl={{
-          antialias: true,
-          powerPreference: 'high-performance',
+        camera={{ position: [0, 0.18, 0.8], fov: FOV.initial, near: 0.05, far: 12 }}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        onCreated={({ gl, scene }) => {
+          gl.toneMappingExposure = 1.15;
+          scene.background = new THREE.Color('#0c0b0e');
         }}
-        onPointerMissed={() => {
-          // Click-away puts selected case back
-          if (selectedSiteId) {
+        onPointerMissed={(e) => {
+          if (selectedSiteId && e.type === 'click' && interaction.dragDistance < 6) {
+            sound.putBack();
             closetStore.deselectSite();
           }
         }}
       >
-        {/* OrbitControls for gentle drag-to-look (disabled while dragging a selected case) */}
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          rotateSpeed={0.35}
-          minAzimuthAngle={-Math.PI / 8}
-          maxAzimuthAngle={Math.PI / 8}
-          minPolarAngle={Math.PI / 2 - 0.18}
-          maxPolarAngle={Math.PI / 2 + 0.18}
-          target={[0, 0.05, 0]}
-        />
-
-        {/* Dynamic camera zoom and height controller */}
-        <CameraController />
-
-        {/* Cursor Flashlight following pointer ray intersection with shelf plane */}
-        <CursorFlashlight />
-
-        {/* 3D Closet Room with Shelves & Cases */}
-        <ClosetRoom sites={sites} />
-
-        {/* Logger for acceptance criteria */}
-        <RendererInfoLogger />
-
-        {/* Postprocessing: Bloom, Vignette 0.65, Noise 0.03 */}
+        <fogExp2 attach="fog" args={['#0c0b0e', 0.16]} />
+        <CameraRig />
+        <SceneLights />
+        <Flashlight />
+        <ClosetRoom sites={sites} resurrectedFrom={resurrectedFrom} />
         <EffectComposer enableNormalPass={false}>
-          <Bloom
-            luminanceThreshold={0.55}
-            luminanceSmoothing={0.85}
-            intensity={0.4}
-            mipmapBlur
-          />
-          <Vignette darkness={0.65} offset={0.3} />
-          <Noise opacity={0.03} />
+          <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.3} intensity={0.9} mipmapBlur />
+          <Vignette darkness={0.7} offset={0.28} />
+          <Noise opacity={0.035} />
         </EffectComposer>
       </Canvas>
     </div>

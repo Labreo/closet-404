@@ -5,12 +5,19 @@ services:
     plan: starter
     buildCommand: npm ci && npm run build
     startCommand: npm start
+    healthCheckPath: /archive
     envVars:
       - key: NODE_ENV
         value: production
       - key: LLM_BASE_URL
-        sync: false
+        value: https://generativelanguage.googleapis.com/v1beta/openai/
       - key: LLM_MODEL
-        sync: false
+        value: gemma-4-31b-it
+      - key: LLM_FALLBACK_MODEL
+        value: gemma-4-26b-a4b-it
       - key: LLM_API_KEY
+        sync: false
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
         sync: false

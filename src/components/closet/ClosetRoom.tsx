@@ -1,262 +1,194 @@
 'use client';
 
-import React, { useMemo, useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import type { Site } from '@/types/archive';
-import {
-  CaseMesh,
-  CASE_HEIGHT,
-  CASE_DEPTH,
-  sharedCaseGeometry,
-  sharedDarkMaterial,
-} from './CaseMesh';
+import { CaseMesh, sharedCaseGeometry, sharedDarkMaterial } from './CaseMesh';
+import { buildLayout, ROOM, SHELF } from './closetLayout';
+import { Ofrenda } from './Ofrenda';
+import { hashString } from './TextureFactory';
 
-// Configurable slot grid constants
-export const SHELF_ROWS = 3;
-export const SLOTS_PER_ROW_BACK = 16;
-export const SLOTS_PER_ROW_SIDE = 9;
-export const TOTAL_SLOTS =
-  SHELF_ROWS * (SLOTS_PER_ROW_BACK + 2 * SLOTS_PER_ROW_SIDE);
+const wallMaterial = new THREE.MeshStandardMaterial({ color: '#1d1820', roughness: 0.95 });
+const floorMaterial = new THREE.MeshStandardMaterial({ color: '#21170f', roughness: 0.75 });
+const ceilingMaterial = new THREE.MeshStandardMaterial({ color: '#141116', roughness: 1 });
+const shelfMaterial = new THREE.MeshStandardMaterial({ color: '#3a281b', roughness: 0.62 });
+const shelfEdgeMaterial = new THREE.MeshStandardMaterial({ color: '#5a3f2a', roughness: 0.5 });
 
-export const ROOM_WIDTH = 1.35;
-export const ROOM_DEPTH = 1.35;
-export const ROOM_HEIGHT = 1.8;
+const BLANK_TONES = ['#1f1c22', '#26211c', '#1b1e23', '#2b2326', '#211f1a', '#18171c', '#2d2822', '#232026'];
 
-// Shared room and shelf materials (dark walnut / charcoal)
-const roomWallMaterial = new THREE.MeshStandardMaterial({
-  color: '#131217',
-  roughness: 0.9,
-  metalness: 0.1,
-});
+let blankTexture: THREE.CanvasTexture | null = null;
 
-const shelfPlankMaterial = new THREE.MeshStandardMaterial({
-  color: '#1c1a22',
-  roughness: 0.8,
-  metalness: 0.2,
-});
-
-interface SlotInfo {
-  position: [number, number, number];
-  rotation: [number, number, number];
+/** One shared, text-free spine texture for every unlabeled case (instance colour tints it). */
+function getBlankTexture(): THREE.CanvasTexture {
+  if (blankTexture) return blankTexture;
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#d8d4cc';
+    ctx.fillRect(0, 0, 64, 256);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(0, 0, 6, 256);
+    ctx.fillRect(58, 0, 6, 256);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(14, 22, 36, 3);
+    ctx.fillRect(14, 226, 36, 2);
+  }
+  blankTexture = new THREE.CanvasTexture(canvas);
+  blankTexture.colorSpace = THREE.SRGBColorSpace;
+  return blankTexture;
 }
 
 interface ClosetRoomProps {
   sites: Site[];
+  resurrectedFrom: number;
 }
 
-export function ClosetRoom({ sites }: ClosetRoomProps) {
-  const blankMeshRef = useRef<THREE.InstancedMesh>(null);
-
-  // Compute all slot positions across 3 rows and 3 walls (left, back, right)
-  const allSlots = useMemo(() => {
-    const slots: SlotInfo[] = [];
-    const rowYHeights = [-0.34, 0.04, 0.42];
-    const shelfYOffset = 0.02; // plank thickness
-
-    for (let r = 0; r < SHELF_ROWS; r++) {
-      const caseY = rowYHeights[r] + shelfYOffset / 2 + CASE_HEIGHT / 2;
-
-      // 1. Left Wall (z runs from front to back: facing +X)
-      const leftX = -ROOM_WIDTH / 2 + CASE_DEPTH / 2 + 0.02;
-      const leftZStart = ROOM_DEPTH / 2 - 0.25;
-      const leftZEnd = -ROOM_DEPTH / 2 + 0.25;
-      for (let i = 0; i < SLOTS_PER_ROW_SIDE; i++) {
-        const t = i / (SLOTS_PER_ROW_SIDE - 1);
-        const z = leftZStart + t * (leftZEnd - leftZStart);
-        slots.push({
-          position: [leftX, caseY, z],
-          rotation: [0, Math.PI / 2, 0], // face +X
-        });
-      }
-
-      // 2. Back Wall (x runs from left to right: facing +Z)
-      const backZ = -ROOM_DEPTH / 2 + CASE_DEPTH / 2 + 0.02;
-      const backXStart = -ROOM_WIDTH / 2 + 0.25;
-      const backXEnd = ROOM_WIDTH / 2 - 0.25;
-      for (let i = 0; i < SLOTS_PER_ROW_BACK; i++) {
-        const t = i / (SLOTS_PER_ROW_BACK - 1);
-        const x = backXStart + t * (backXEnd - backXStart);
-        slots.push({
-          position: [x, caseY, backZ],
-          rotation: [0, 0, 0], // face +Z
-        });
-      }
-
-      // 3. Right Wall (z runs from back to front: facing -X)
-      const rightX = ROOM_WIDTH / 2 - CASE_DEPTH / 2 - 0.02;
-      const rightZStart = -ROOM_DEPTH / 2 + 0.25;
-      const rightZEnd = ROOM_DEPTH / 2 - 0.25;
-      for (let i = 0; i < SLOTS_PER_ROW_SIDE; i++) {
-        const t = i / (SLOTS_PER_ROW_SIDE - 1);
-        const z = rightZStart + t * (rightZEnd - rightZStart);
-        slots.push({
-          position: [rightX, caseY, z],
-          rotation: [0, -Math.PI / 2, 0], // face -X
-        });
-      }
+/** Engraved brass label rail hung under a wall's top plank. */
+function Plaque({ text, position, rotationY }: { text: string; position: [number, number, number]; rotationY: number }) {
+  const material = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 112;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const g = ctx.createLinearGradient(0, 0, 0, 112);
+      g.addColorStop(0, '#d8b46a');
+      g.addColorStop(0.5, '#b58c45');
+      g.addColorStop(1, '#8a6630');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 1024, 112);
+      ctx.strokeStyle = 'rgba(40,24,8,0.6)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(8, 8, 1008, 96);
+      ctx.fillStyle = '#2b1a0a';
+      const mono = getComputedStyle(document.documentElement).getPropertyValue('--nf-mono').trim() || 'monospace';
+      ctx.font = `700 40px ${mono}, monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 512, 60);
     }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshStandardMaterial({ map: tex, metalness: 0.6, roughness: 0.35 });
+  }, [text]);
 
-    return slots;
+  return (
+    <mesh position={position} rotation={[0, rotationY, 0]} material={material}>
+      <planeGeometry args={[0.46, 0.05]} />
+    </mesh>
+  );
+}
+
+function ShelfUnit({ wall }: { wall: 'left' | 'back' | 'right' }) {
+  const isBack = wall === 'back';
+  const length = isBack ? ROOM.halfWidth * 2 : ROOM.frontZ - ROOM.backZ - SHELF.depth;
+  const planks = [...SHELF.rowsY, SHELF.topY];
+  const sign = wall === 'left' ? -1 : 1;
+
+  const group = isBack
+    ? { position: [0, 0, ROOM.backZ + SHELF.depth / 2] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }
+    : {
+        position: [sign * (ROOM.halfWidth - SHELF.depth / 2), 0, (ROOM.backZ + SHELF.depth + ROOM.frontZ) / 2] as [number, number, number],
+        rotation: [0, -sign * (Math.PI / 2), 0] as [number, number, number],
+      };
+
+  return (
+    <group position={group.position} rotation={group.rotation}>
+      {planks.map((y) => (
+        <group key={y}>
+          <mesh position={[0, y, 0]} material={shelfMaterial}>
+            <boxGeometry args={[length, SHELF.thickness, SHELF.depth]} />
+          </mesh>
+          <mesh position={[0, y, SHELF.depth / 2]} material={shelfEdgeMaterial}>
+            <boxGeometry args={[length, SHELF.thickness + 0.006, 0.008]} />
+          </mesh>
+        </group>
+      ))}
+      {[-length / 2, length / 2].map((x) => (
+        <mesh key={x} position={[x, (SHELF.rowsY[0] + SHELF.topY) / 2, 0]} material={shelfMaterial}>
+          <boxGeometry args={[0.03, SHELF.topY - SHELF.rowsY[0] + 0.04, SHELF.depth]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+export function ClosetRoom({ sites, resurrectedFrom }: ClosetRoomProps) {
+  const blankMeshRef = useRef<THREE.InstancedMesh>(null);
+  const layout = useMemo(() => buildLayout(sites, resurrectedFrom), [sites, resurrectedFrom]);
+  const plaqueY = SHELF.topY - SHELF.thickness / 2 - 0.028;
+  const sideX = ROOM.halfWidth - SHELF.depth - 0.004;
+  const blankMaterial = useMemo(() => {
+    const mat = sharedDarkMaterial.clone();
+    mat.map = getBlankTexture();
+    return mat;
   }, []);
 
-  // Split slots into real sites and remaining blank slots
-  const realSitesCount = Math.min(sites.length, allSlots.length);
-  const realSitesList = sites.slice(0, realSitesCount);
-  const blankSlots = useMemo(
-    () => allSlots.slice(realSitesCount),
-    [allSlots, realSitesCount]
-  );
-
-  // Setup instanced mesh transforms for all blank uniform dark cases
   useLayoutEffect(() => {
-    if (!blankMeshRef.current || blankSlots.length === 0) return;
-
+    const mesh = blankMeshRef.current;
+    if (!mesh) return;
     const dummy = new THREE.Object3D();
-    blankSlots.forEach((slot, idx) => {
+    const color = new THREE.Color();
+    layout.blanks.forEach((slot, idx) => {
       dummy.position.set(...slot.position);
       dummy.rotation.set(...slot.rotation);
       dummy.updateMatrix();
-      blankMeshRef.current?.setMatrixAt(idx, dummy.matrix);
+      mesh.setMatrixAt(idx, dummy.matrix);
+      const h = hashString(`${slot.wall}${slot.row}${slot.col}`);
+      color.set(BLANK_TONES[h % BLANK_TONES.length]);
+      mesh.setColorAt(idx, color);
     });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [layout]);
 
-    blankMeshRef.current.instanceMatrix.needsUpdate = true;
-  }, [blankSlots]);
+  const width = ROOM.halfWidth * 2;
+  const depth = ROOM.frontZ - ROOM.backZ;
+  const height = ROOM.ceilingY - ROOM.floorY;
+  const midY = (ROOM.ceilingY + ROOM.floorY) / 2;
+  const midZ = (ROOM.frontZ + ROOM.backZ) / 2;
 
   return (
     <group>
-      {/* Fog in #0c0b0e */}
-      <fogExp2 attach="fog" args={['#0c0b0e', 0.42]} />
+      <mesh position={[0, midY, ROOM.backZ]} material={wallMaterial}>
+        <planeGeometry args={[width, height]} />
+      </mesh>
+      <mesh position={[-ROOM.halfWidth, midY, midZ]} rotation={[0, Math.PI / 2, 0]} material={wallMaterial}>
+        <planeGeometry args={[depth, height]} />
+      </mesh>
+      <mesh position={[ROOM.halfWidth, midY, midZ]} rotation={[0, -Math.PI / 2, 0]} material={wallMaterial}>
+        <planeGeometry args={[depth, height]} />
+      </mesh>
+      <mesh position={[0, ROOM.floorY, midZ]} rotation={[-Math.PI / 2, 0, 0]} material={floorMaterial}>
+        <planeGeometry args={[width, depth]} />
+      </mesh>
+      <mesh position={[0, ROOM.ceilingY, midZ]} rotation={[Math.PI / 2, 0, 0]} material={ceilingMaterial}>
+        <planeGeometry args={[width, depth]} />
+      </mesh>
 
-      {/* Two warm strip lights (#ffdfb0, low intensity) */}
-      <pointLight
-        position={[-ROOM_WIDTH / 3, ROOM_HEIGHT / 2 - 0.15, -0.1]}
-        color="#ffdfb0"
-        intensity={1.7}
-        distance={2.8}
-        decay={2}
-      />
-      <pointLight
-        position={[ROOM_WIDTH / 3, ROOM_HEIGHT / 2 - 0.15, -0.1]}
-        color="#ffdfb0"
-        intensity={1.7}
-        distance={2.8}
-        decay={2}
-      />
+      <ShelfUnit wall="back" />
+      <ShelfUnit wall="left" />
+      <ShelfUnit wall="right" />
 
-      {/* Soft ambient and fill lighting */}
-      <ambientLight color="#2a2732" intensity={0.5} />
-      <directionalLight
-        position={[0, 0.8, 1.2]}
-        color="#ffe8d1"
-        intensity={0.6}
-      />
+      <Plaque text="DOT-COMS · PORTALS · SEARCH ENGINES" position={[0, plaqueY, ROOM.backZ + SHELF.depth + 0.004]} rotationY={0} />
+      <Plaque text="GEOCITIES · AREA51 NEIGHBORHOOD" position={[-sideX, plaqueY, 0.05]} rotationY={Math.PI / 2} />
+      <Plaque text="RESURRECTED TONIGHT" position={[sideX, plaqueY, 0.05]} rotationY={-Math.PI / 2} />
 
-      {/* U-Shaped Room Architecture (Left, Back, Right Walls, Floor, Ceiling) */}
-      <group>
-        {/* Back Wall */}
-        <mesh
-          position={[0, 0, -ROOM_DEPTH / 2]}
-          material={roomWallMaterial}
-          receiveShadow
-        >
-          <planeGeometry args={[ROOM_WIDTH, ROOM_HEIGHT]} />
-        </mesh>
+      {layout.real.map(({ site, slot }) => (
+        <CaseMesh key={site.id} site={site} slot={slot} />
+      ))}
 
-        {/* Left Wall */}
-        <mesh
-          position={[-ROOM_WIDTH / 2, 0, 0]}
-          rotation={[0, Math.PI / 2, 0]}
-          material={roomWallMaterial}
-          receiveShadow
-        >
-          <planeGeometry args={[ROOM_DEPTH, ROOM_HEIGHT]} />
-        </mesh>
-
-        {/* Right Wall */}
-        <mesh
-          position={[ROOM_WIDTH / 2, 0, 0]}
-          rotation={[0, -Math.PI / 2, 0]}
-          material={roomWallMaterial}
-          receiveShadow
-        >
-          <planeGeometry args={[ROOM_DEPTH, ROOM_HEIGHT]} />
-        </mesh>
-
-        {/* Floor */}
-        <mesh
-          position={[0, -ROOM_HEIGHT / 2, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          material={roomWallMaterial}
-          receiveShadow
-        >
-          <planeGeometry args={[ROOM_WIDTH, ROOM_DEPTH]} />
-        </mesh>
-
-        {/* Ceiling */}
-        <mesh
-          position={[0, ROOM_HEIGHT / 2, 0]}
-          rotation={[Math.PI / 2, 0, 0]}
-          material={roomWallMaterial}
-        >
-          <planeGeometry args={[ROOM_WIDTH, ROOM_DEPTH]} />
-        </mesh>
-      </group>
-
-      {/* 3 Rows of Wooden Shelf Planks */}
-      <group>
-        {[-0.34, 0.04, 0.42].map((shelfY, r) => (
-          <group key={`shelf-row-${r}`}>
-            {/* Back shelf plank */}
-            <mesh
-              position={[0, shelfY, -ROOM_DEPTH / 2 + 0.12]}
-              material={shelfPlankMaterial}
-              receiveShadow
-            >
-              <boxGeometry args={[ROOM_WIDTH - 0.08, 0.02, 0.24]} />
-            </mesh>
-            {/* Left shelf plank */}
-            <mesh
-              position={[-ROOM_WIDTH / 2 + 0.12, shelfY, 0]}
-              material={shelfPlankMaterial}
-              receiveShadow
-            >
-              <boxGeometry args={[0.24, 0.02, ROOM_DEPTH - 0.08]} />
-            </mesh>
-            {/* Right shelf plank */}
-            <mesh
-              position={[ROOM_WIDTH / 2 - 0.12, shelfY, 0]}
-              material={shelfPlankMaterial}
-              receiveShadow
-            >
-              <boxGeometry args={[0.24, 0.02, ROOM_DEPTH - 0.08]} />
-            </mesh>
-          </group>
-        ))}
-      </group>
-
-      {/* Real sites rendered as individual CaseMesh instances */}
-      <group>
-        {realSitesList.map((site, index) => {
-          const slot = allSlots[index];
-          return (
-            <CaseMesh
-              key={site.id}
-              site={site}
-              position={slot.position}
-              rotation={slot.rotation}
-            />
-          );
-        })}
-      </group>
-
-      {/* Remaining empty slots filled with BLANK uniform dark cases via single InstancedMesh */}
-      {blankSlots.length > 0 && (
+      {layout.blanks.length > 0 && (
         <instancedMesh
+          key={layout.blanks.length}
           ref={blankMeshRef}
-          args={[sharedCaseGeometry, sharedDarkMaterial, blankSlots.length]}
-          receiveShadow
+          args={[sharedCaseGeometry, blankMaterial, layout.blanks.length]}
         />
       )}
+
+      <Ofrenda />
     </group>
   );
 }

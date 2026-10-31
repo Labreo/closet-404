@@ -20,13 +20,17 @@ let cachedDocs: IndexedDoc[] | null = null;
 let cachedAvgDl = 0;
 let cachedArchiveCount = 0;
 
+const STOPWORDS = new Set(
+  'a an and are as at be by for from has have i in is it its me my of on or our that the this to was were with you your'.split(' ')
+);
+
 function tokenize(text: string): string[] {
   return (text || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .split(/\s+/)
-    .filter((token) => token.length > 0);
+    .filter((token) => token.length > 0 && !STOPWORDS.has(token));
 }
 
 function loadAndIndexArchive(): {

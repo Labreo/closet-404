@@ -47,3 +47,21 @@ export type Site = {
   generatedBy: string;
 };
 
+
+export interface CoronerSource {
+  title: string;
+  link: string;
+  source: string;
+  date: string;
+  snippet: string;
+}
+
+/** Cause-of-death notes: live web search results (SerpApi) summarised by the open-weight model. */
+export interface CoronerReport {
+  siteId: string;
+  query: string;
+  searchedAt: string;
+  sources: CoronerSource[];
+  summary: string;
+  generatedBy: string;
+}

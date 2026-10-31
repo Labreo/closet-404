@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "data:build": "tsx --env-file=.env.local scripts/build-archive.ts",
+    "data:ghosts": "tsx --env-file=.env.local scripts/regen-ghosts.ts",
+    "data:coroner": "tsx --env-file=.env.local scripts/coroner.ts",
+    "ping": "tsx --env-file=.env.local scripts/ping-llm.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

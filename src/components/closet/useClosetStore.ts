@@ -5,7 +5,9 @@ export interface ClosetState {
   selectedSiteId: string | null;
   hoveredSiteId: string | null;
   selectedSite: Site | null;
+  hoveredSite: Site | null;
   searchGlowIds: string[];
+  entered: boolean;
 }
 
 type Listener = () => void;
@@ -14,7 +16,9 @@ let state: ClosetState = {
   selectedSiteId: null,
   hoveredSiteId: null,
   selectedSite: null,
+  hoveredSite: null,
   searchGlowIds: [],
+  entered: false,
 };
 
 const listeners = new Set<Listener>();
@@ -25,12 +29,26 @@ function emitChange() {
   }
 }
 
+/**
+ * Per-frame interaction values. Mutated by pointer handlers and read inside
+ * useFrame, so they never trigger React renders.
+ */
+export const interaction = {
+  spin: 0,
+  spinVelocity: 0,
+  draggingCase: false,
+  /** Pixels moved since the last pointerdown; separates clicks from drags. */
+  dragDistance: 0,
+};
+
 export const closetStore = {
   getState(): ClosetState {
     return state;
   },
 
   selectSite(site: Site | null) {
+    interaction.spin = 0;
+    interaction.spinVelocity = 0;
     state = {
       ...state,
       selectedSite: site,
@@ -50,11 +68,13 @@ export const closetStore = {
     }
   },
 
-  setHoveredSite(id: string | null) {
+  setHoveredSite(site: Site | null) {
+    const id = site ? site.id : null;
     if (state.hoveredSiteId !== id) {
       state = {
         ...state,
         hoveredSiteId: id,
+        hoveredSite: site,
       };
       emitChange();
     }
@@ -66,6 +86,13 @@ export const closetStore = {
       searchGlowIds: ids,
     };
     emitChange();
+  },
+
+  enter() {
+    if (!state.entered) {
+      state = { ...state, entered: true };
+      emitChange();
+    }
   },
 
   subscribe(listener: Listener): () => void {
@@ -86,4 +113,3 @@ export function useClosetStore<T>(selector: (state: ClosetState) => T): T {
     () => selector(closetStore.getState())
   );
 }
-

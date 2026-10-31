@@ -389,7 +389,6 @@ Analyze this website from the SOURCE provided. Return a JSON object with:
         .map((t) => t.toLowerCase().trim().replace(/[^a-z0-9_-]/g, ''))
         .filter(Boolean);
       if (vibeTags.length > 8) vibeTags = vibeTags.slice(0, 8);
-      while (vibeTags.length < 8) vibeTags.push('retro');
 
       return {
         ...validated,
@@ -400,7 +399,6 @@ Analyze this website from the SOURCE provided. Return a JSON object with:
         console.warn(
           `[LLM] Validation/parse attempt 1 failed (${err instanceof Error ? err.message : String(err)}). Retrying...`
         );
-        process.env.LLM_MODEL = 'gemini-3.5-flash-lite';
         await sleep(1000);
         continue;
       }
@@ -416,9 +414,7 @@ async function main() {
   console.log('Closet 404 - Archive Builder (Task 2)');
   console.log('================================================================');
 
-  // Use fast, high-quota Google model for reliable inference
-  process.env.LLM_MODEL = 'gemini-3.5-flash-lite';
-  console.log('[Model] Active model configured as gemini-3.5-flash-lite');
+  console.log(`[Model] ${process.env.LLM_MODEL ?? 'unset'}`);
 
   // Ensure directories exist
   fs.mkdirSync(path.dirname(SEED_FILE), { recursive: true });

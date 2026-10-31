@@ -11,6 +11,11 @@ export interface ChatOptions {
   stream?: boolean;
   maxTokens?: number;
   temperature?: number;
+  timeoutMs?: number;
+  /** Called with the model that actually answered (primary or LLM_FALLBACK_MODEL). */
+  onModel?: (model: string) => void;
+  /** Streaming only: enqueued once per hidden reasoning chunk, so clients can show the model is working. */
+  thinkingMarker?: string;
 }
 
 export type LLMErrorCode =
@@ -68,10 +73,15 @@ export async function chat({
   stream,
   maxTokens,
   temperature,
+  timeoutMs = 60_000,
+  onModel,
+  thinkingMarker,
 }: ChatOptions): Promise<string | ReadableStream<string>> {
   const rawBaseUrl = process.env.LLM_BASE_URL?.trim();
   const apiKey = process.env.LLM_API_KEY?.trim();
   const model = process.env.LLM_MODEL?.trim();
+  // Optional second open-weight model tried when the primary returns 429/5xx.
+  const fallbackModel = process.env.LLM_FALLBACK_MODEL?.trim();
 
   if (!rawBaseUrl || !apiKey || !model) {
     throw new LLMError(
@@ -93,7 +103,7 @@ export async function chat({
   };
 
   if (maxTokens !== undefined) {
-    payload.max_tokens = isGoogleHosted ? maxTokens + 1024 : maxTokens;
+    payload.max_tokens = isGoogleHosted ? maxTokens + 4096 : maxTokens;
   }
 
   if (temperature !== undefined) {
@@ -135,7 +145,7 @@ export async function chat({
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 30_000);
+    }, timeoutMs);
 
     try {
       const response = await fetch(endpoint, {
@@ -163,12 +173,17 @@ export async function chat({
 
         if (isRetryableStatus && attempt === 0) {
           lastError = httpError;
+          if (fallbackModel && fallbackModel !== payload.model) {
+            payload.model = fallbackModel;
+          }
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
 
         throw httpError;
       }
+
+      onModel?.(String(payload.model));
 
       if (stream) {
         if (!response.body) {
@@ -222,6 +237,9 @@ export async function chat({
 
                   const content = delta.content ?? '';
                   if (!content) continue;
+                  if (thinkingMarker && (inThinkingBlock || delta.extra_content?.google?.thought)) {
+                    streamController.enqueue(thinkingMarker);
+                  }
 
                   tagBuffer += content;
 
@@ -298,7 +316,7 @@ export async function chat({
               clearTimeout(timeoutId);
               if (err instanceof Error && err.name === 'AbortError') {
                 streamController.error(
-                  new LLMError('LLM stream timed out after 30000ms', 'TIMEOUT')
+                  new LLMError(`LLM stream timed out after ${timeoutMs}ms`, 'TIMEOUT')
                 );
               } else {
                 streamController.error(
@@ -351,7 +369,7 @@ export async function chat({
       }
 
       if (err instanceof Error && err.name === 'AbortError') {
-        throw new LLMError('LLM request timed out after 30000ms', 'TIMEOUT');
+        throw new LLMError(`LLM request timed out after ${timeoutMs}ms`, 'TIMEOUT');
       }
 
       throw new LLMError(

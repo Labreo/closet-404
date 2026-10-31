@@ -1,181 +1,164 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useThree, useFrame, ThreeEvent } from '@react-three/fiber';
 import { easing } from 'maath';
 import type { Site } from '@/types/archive';
-import { getSpineTexture } from './TextureFactory';
-import { closetStore, useClosetStore } from './useClosetStore';
+import { getCaseTexture } from './TextureFactory';
+import { closetStore, interaction, useClosetStore } from './useClosetStore';
+import { CASE, type Slot } from './closetLayout';
+import { sound } from '@/lib/sound';
 
-export const CASE_WIDTH = 0.045;
-export const CASE_HEIGHT = 0.26;
-export const CASE_DEPTH = 0.18;
-
-// Shared geometry and uniform side materials (cached module-level)
-export const sharedCaseGeometry = new THREE.BoxGeometry(
-  CASE_WIDTH,
-  CASE_HEIGHT,
-  CASE_DEPTH
-);
+// Shared geometry and edge material (cached module-level, never recreated).
+export const sharedCaseGeometry = new THREE.BoxGeometry(CASE.w, CASE.h, CASE.d);
 
 export const sharedDarkMaterial = new THREE.MeshStandardMaterial({
-  color: '#151419',
-  roughness: 0.85,
-  metalness: 0.15,
+  color: '#ffffff',
+  roughness: 0.6,
+  metalness: 0.05,
 });
+
+const edgeMaterial = new THREE.MeshStandardMaterial({
+  color: '#121116',
+  roughness: 0.35,
+  metalness: 0.2,
+});
+
+const MARIGOLD = new THREE.Color('#ff9e00');
+const HOLD_OFFSET = new THREE.Vector3(-0.15, -0.01, -0.6);
+const tmpTarget = new THREE.Vector3();
+const tmpEuler = new THREE.Euler();
 
 interface CaseMeshProps {
   site: Site;
-  position: [number, number, number];
-  rotation: [number, number, number];
+  slot: Slot;
 }
 
-export function CaseMesh({ site, position, rotation }: CaseMeshProps) {
+function makeFaceMaterial(): THREE.MeshPhysicalMaterial {
+  return new THREE.MeshPhysicalMaterial({
+    color: '#2a2830',
+    roughness: 0.42,
+    metalness: 0,
+    clearcoat: 0.55,
+    clearcoatRoughness: 0.35,
+    emissive: MARIGOLD,
+    emissiveIntensity: 0,
+  });
+}
+
+export function CaseMesh({ site, slot }: CaseMeshProps) {
   const { gl } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
 
   const selectedSiteId = useClosetStore((s) => s.selectedSiteId);
+  const isGlowing = useClosetStore((s) => s.searchGlowIds.includes(site.id));
+  const isHovered = useClosetStore((s) => s.hoveredSiteId === site.id);
   const isSelected = selectedSiteId === site.id;
   const isAnotherSelected = selectedSiteId !== null && !isSelected;
 
-  const isHoveredRef = useRef(false);
-  const isDraggingRef = useRef(false);
-  const lastPointerXRef = useRef(0);
-  const spinAngleRef = useRef(0);
+  const shadeRef = useRef({ value: 1, glow: 0 });
 
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+  const faces = useMemo(
+    () => ({ spine: makeFaceMaterial(), cover: makeFaceMaterial(), back: makeFaceMaterial() }),
+    []
+  );
+
+  // Box face order: +X (front cover), -X (back cover), +Y, -Y, +Z (spine), -Z.
+  const materials = useMemo(
+    () => [faces.cover, faces.back, edgeMaterial, edgeMaterial, faces.spine, edgeMaterial],
+    [faces]
+  );
 
   useEffect(() => {
     let active = true;
-    void getSpineTexture(site, gl).then((tex) => {
-      if (active) {
-        setTexture(tex);
-      }
+    (['spine', 'cover', 'back'] as const).forEach((kind) => {
+      void getCaseTexture(site, kind, gl).then((tex) => {
+        if (!active) return;
+        const mat = faces[kind];
+        mat.map = tex;
+        mat.color.set('#ffffff');
+        mat.needsUpdate = true;
+      });
     });
     return () => {
       active = false;
     };
-  }, [site, gl]);
+  }, [site, gl, faces]);
 
-  // Compute outward normal vector based on shelf slot rotation
-  const normalVec = useMemo(() => {
-    const rotY = rotation[1];
-    if (Math.abs(rotY) < 0.1) {
-      return [0, 0, 1]; // back wall: outward is +Z
-    } else if (rotY > 0) {
-      return [1, 0, 0]; // left wall: outward is +X
-    } else {
-      return [-1, 0, 0]; // right wall: outward is -X
-    }
-  }, [rotation]);
+  useEffect(
+    () => () => {
+      faces.spine.dispose();
+      faces.cover.dispose();
+      faces.back.dispose();
+    },
+    [faces]
+  );
 
-  // Create unique spine material instance to allow independent dimming
-  const spineMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      map: texture,
-      roughness: 0.7,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 1.0,
-    });
-  }, [texture]);
-
-  const materials = useMemo(() => {
-    return [
-      sharedDarkMaterial,
-      sharedDarkMaterial,
-      sharedDarkMaterial,
-      sharedDarkMaterial,
-      spineMaterial, // +Z spine face
-      sharedDarkMaterial,
-    ];
-  }, [spineMaterial]);
-
-  // Handle damping for position, rotation, and dimming in useFrame (No setState in useFrame)
   useFrame((state, delta) => {
-    if (!meshRef.current) return;
-
-    // 1. Position target
-    const targetPos = new THREE.Vector3();
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const dt = Math.min(delta, 0.05);
+    const [ox, , oz] = slot.outward;
+    const [px, py, pz] = slot.position;
 
     if (isSelected) {
-      // Fly to in front of camera, offset left
-      const cameraY = state.camera.position.y;
-      targetPos.set(-0.18, cameraY, 0.88);
-    } else if (isHoveredRef.current) {
-      // Hover slide out by 0.06 along shelf outward normal
-      targetPos.set(
-        position[0] + normalVec[0] * 0.06,
-        position[1],
-        position[2] + normalVec[2] * 0.06
-      );
+      tmpTarget.copy(HOLD_OFFSET);
+      state.camera.localToWorld(tmpTarget);
+      easing.damp3(mesh.position, tmpTarget, 0.22, dt);
+
+      if (!interaction.draggingCase) {
+        interaction.spin += interaction.spinVelocity * dt;
+        interaction.spinVelocity *= Math.exp(-3 * dt);
+      }
+      // +X (front cover) faces the camera when yaw = cameraYaw - PI/2.
+      tmpEuler.set(0, state.camera.rotation.y - Math.PI / 2 + interaction.spin, 0);
+      easing.dampE(mesh.rotation, tmpEuler, 0.25, dt);
     } else {
-      // Rest slot position
-      targetPos.set(...position);
+      const slide = isGlowing ? 0.09 : isHovered && !isAnotherSelected ? 0.06 : 0;
+      tmpTarget.set(px + ox * slide, py, pz + oz * slide);
+      easing.damp3(mesh.position, tmpTarget, 0.15, dt);
+      tmpEuler.set(slot.rotation[0], slot.rotation[1], slot.rotation[2]);
+      easing.dampE(mesh.rotation, tmpEuler, 0.2, dt);
     }
 
-    easing.damp3(meshRef.current.position, targetPos, 0.18, delta);
-
-    // 2. Rotation target
-    const targetRot = new THREE.Euler();
-    if (isSelected) {
-      // Face the camera directly + pointer drag spin
-      targetRot.set(0, spinAngleRef.current, 0);
-    } else {
-      targetRot.set(...rotation);
+    // Dim the rest of the shelf while a case is held; pulse search matches in marigold.
+    const shade = shadeRef.current;
+    easing.damp(shade, 'value', isAnotherSelected ? 0.35 : 1, 0.25, dt);
+    const pulse = isGlowing && !isSelected ? 0.55 + 0.3 * Math.sin(state.clock.elapsedTime * 3.2) : 0;
+    easing.damp(shade, 'glow', pulse, 0.12, dt);
+    for (const mat of [faces.spine, faces.cover, faces.back]) {
+      if (mat.map) mat.color.setScalar(shade.value);
+      mat.emissiveIntensity = shade.glow;
     }
-
-    easing.dampE(meshRef.current.rotation, targetRot, 0.18, delta);
-
-    // 3. Dimming other cases when a case is selected
-    const targetOpacity = isAnotherSelected ? 0.35 : 1.0;
-    easing.damp(spineMaterial, 'opacity', targetOpacity, 0.2, delta);
   });
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    isHoveredRef.current = true;
-    closetStore.setHoveredSite(site.id);
+    if (isAnotherSelected) return;
+    closetStore.setHoveredSite(site);
     document.body.style.cursor = isSelected ? 'grab' : 'pointer';
+    if (!isSelected) sound.tick();
   };
 
   const handlePointerOut = () => {
-    isHoveredRef.current = false;
-    closetStore.setHoveredSite(null);
-    document.body.style.cursor = 'default';
+    if (closetStore.getState().hoveredSiteId === site.id) closetStore.setHoveredSite(null);
+    document.body.style.cursor = '';
   };
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    if (!isSelected) {
-      spinAngleRef.current = 0;
-      closetStore.selectSite(site);
-    }
+    if (e.delta > 6 || isSelected) return;
+    sound.pull();
+    closetStore.setHoveredSite(null);
+    closetStore.selectSite(site);
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (isSelected) {
-      e.stopPropagation();
-      isDraggingRef.current = true;
-      lastPointerXRef.current = e.clientX;
-      document.body.style.cursor = 'grabbing';
-    }
-  };
-
-  const handlePointerUp = () => {
-    if (isSelected) {
-      isDraggingRef.current = false;
-      document.body.style.cursor = 'grab';
-    }
-  };
-
-  const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    if (isSelected && isDraggingRef.current) {
-      const dx = e.clientX - lastPointerXRef.current;
-      lastPointerXRef.current = e.clientX;
-      spinAngleRef.current += dx * 0.015;
-    }
+    if (!isSelected) return;
+    e.stopPropagation();
+    interaction.draggingCase = true;
+    document.body.style.cursor = 'grabbing';
   };
 
   return (
@@ -183,16 +166,12 @@ export function CaseMesh({ site, position, rotation }: CaseMeshProps) {
       ref={meshRef}
       geometry={sharedCaseGeometry}
       material={materials}
-      position={position}
-      rotation={rotation}
-      castShadow
-      receiveShadow
+      position={slot.position}
+      rotation={slot.rotation}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onClick={handleClick}
       onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerMove={handlePointerMove}
     />
   );
 }

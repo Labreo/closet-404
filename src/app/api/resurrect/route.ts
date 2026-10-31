@@ -63,11 +63,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   isProcessingServerWide = true;
 
-  // 12s total timeout limit
+  // Total budget covers archive.org fetches plus one open-weight model call
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 12_000);
+  }, 150_000);
 
   try {
     const site = await resurrectUrl({
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } catch (err) {
     if (controller.signal.aborted) {
       return NextResponse.json(
-        { error: 'Resurrection timed out (12s total limit exceeded)' },
+        { error: 'Resurrection timed out (150s limit). archive.org or the model is slow right now; try again.' },
         { status: 504 }
       );
     }
