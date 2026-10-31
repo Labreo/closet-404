@@ -2,7 +2,7 @@ services:
   - type: web
     name: closet-404
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /archive
