@@ -35,6 +35,17 @@ export function ClosetApp({ sites, coroner }: ClosetAppProps) {
 
   const allSites = useMemo(() => [...sites, ...resurrected], [sites, resurrected]);
 
+  // Shareable links: /?site=<id> pulls that case off the shelf once the visitor enters.
+  useEffect(() => {
+    if (!entered) return;
+    const id = new URLSearchParams(window.location.search).get('site');
+    const site = id ? sites.find((s) => s.id === id) : undefined;
+    if (site && !closetStore.getState().selectedSiteId) {
+      sound.pull();
+      closetStore.selectSite(site);
+    }
+  }, [entered, sites]);
+
   const putBack = useCallback(() => {
     sound.putBack();
     closetStore.deselectSite();

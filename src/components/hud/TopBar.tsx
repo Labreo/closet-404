@@ -13,7 +13,7 @@ interface TopBarProps {
 export function TopBar({ count, muted, onToggleMute, onResurrect }: TopBarProps) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-4 p-4 sm:p-5 pb-10 bg-gradient-to-b from-[#0c0b0e]/85 via-[#0c0b0e]/40 to-transparent">
-      <div className="pointer-events-auto">
+      <div className="pointer-events-auto pill rounded-2xl! px-4 py-2.5">
         <Link href="/" className="font-display text-[30px] leading-none text-ink">
           Closet <span className="italic text-marigold">404</span>
         </Link>

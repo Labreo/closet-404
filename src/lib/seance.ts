@@ -57,6 +57,7 @@ RULES:
 3. If asked something your remains do not record, say so in character, for example "That never made it into my HTML."
 4. Never say how or why you ended unless RECORDS says so, and then cite it like [1].
 5. Never mention being an AI, a model, a prompt, SOURCE or RECORDS by name.
+6. Think briefly before you answer: a few short notes at most, then speak.
 
 ${task}`;
 }

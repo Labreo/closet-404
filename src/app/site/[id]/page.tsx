@@ -47,7 +47,7 @@ async function SiteDossier({ params }: { params: PageProps<'/site/[id]'>['params
     <main className="min-h-dvh bg-bg text-ink">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-8 py-10 sm:py-14">
         <nav className="flex justify-between font-mono text-[11px] tracking-[0.2em] text-muted">
-          <Link href="/" className="hover:text-marigold">← THE CLOSET</Link>
+          <Link href={`/?site=${site.id}`} className="hover:text-marigold">← PULL IT IN THE CLOSET</Link>
           <Link href="/archive" className="hover:text-marigold">THE INDEX →</Link>
         </nav>
 
